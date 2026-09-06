@@ -1,0 +1,3046 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Samsung Finance - Sistem Pengajuan Cicilan</title>
+  <meta name="description" content="Sistem Pengajuan Cicilan Samsung Finance dengan registrasi nomor HP, form pengajuan promo cicilan, validasi ketat, dashboard admin, dan monitoring timer status." />
+  <meta property="og:title" content="Samsung Finance - Sistem Pengajuan Cicilan" />
+  <meta property="og:description" content="Sistem Pengajuan Cicilan Samsung Finance dengan registrasi nomor HP, form pengajuan promo cicilan, validasi ketat, dashboard admin, dan monitoring timer status." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            samsung: {
+              blue: '#0381FE',
+              darkBlue: '#0062cc',
+              navy: '#002D5E',
+              deepNavy: '#001a38',
+              bg: '#F4F7FA',
+              warning: '#FF4D4D',
+              cardBg: '#ffffff',
+            }
+          },
+          keyframes: {
+            blink: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.5' },
+            }
+          },
+          animation: {
+            'warning-pulse': 'blink 1.5s infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --s-blue: #0381FE;
+      --s-navy: #002D5E;
+      --s-bg: #F4F7FA;
+      --s-warning: #FF4D4D;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--s-bg);
+      color: #1e293b;
+      min-height: 100vh;
+    }
+    .samsung-bg { background-color: var(--s-bg); }
+    .samsung-blue { background-color: var(--s-blue); }
+    .samsung-navy { background-color: var(--s-navy); }
+    .text-samsung { color: var(--s-blue); }
+    .border-samsung { border-color: var(--s-blue); }
+    .warning-pulse { animation: blink 1.5s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .glass { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .samsung-gradient {
+      background: linear-gradient(135deg, #002D5E 0%, #0381FE 100%);
+    }
+    .samsung-badge {
+      background: linear-gradient(90deg, #0381FE 0%, #00d2ff 100%);
+    }
+  </style>
+</head>
+<body class="samsung-bg text-slate-800 antialiased min-h-screen flex flex-col overflow-x-hidden">
+
+  <!-- ==================== TOP NAVIGATION HEADER ==================== -->
+  <header id="main-header" class="samsung-blue min-h-16 flex items-center justify-between px-3.5 sm:px-6 lg:px-8 text-white shadow-md z-30 sticky top-0">
+    <div class="max-w-7xl mx-auto w-full flex items-center justify-between gap-3 py-2.5">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none shrink-0" onclick="switchView(state.registeredPhone ? 'user' : 'register')">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-xl flex items-center justify-center shadow-xs shrink-0">
+          <div class="w-5 h-5 sm:w-6 sm:h-6 border-[3.5px] border-[#0381FE] rounded-full"></div>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5 leading-none">
+            <span class="font-black text-base sm:text-xl tracking-tight text-white">SAMSUNG</span>
+            <span class="font-light text-base sm:text-xl text-blue-100">Finance+</span>
+          </div>
+          <span class="text-[10px] text-blue-200/90 font-medium tracking-wide leading-tight mt-1 hidden xs:block">Official Financing Program</span>
+        </div>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Single Header Switcher Button: Clean, avoids multi-tab text collision -->
+        <button 
+          id="btn-header-admin-toggle"
+          type="button"
+          onclick="toggleAdminFromHeader()"
+          class="px-3 sm:px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-xs sm:text-sm shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer shrink-0 border border-white/20"
+          title="Beralih ke Portal Admin / Formulir Pengajuan"
+        >
+          <svg class="w-4 h-4 shrink-0 text-blue-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span id="header-admin-btn-text" class="whitespace-nowrap">Portal Admin</span>
+          <span id="header-admin-badge" class="ml-0.5 bg-amber-400 text-slate-900 text-[10px] font-black px-1.5 py-0.5 rounded-full hidden">0</span>
+        </button>
+
+        <!-- Admin Profile Pill (Visible when Admin 571617 is actively logged in) -->
+        <div id="admin-profile-pill" class="hidden flex items-center gap-2 pl-2.5 pr-1.5 py-1 rounded-xl bg-black/25 border border-white/20 text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+          <span class="text-white font-bold text-xs hidden sm:inline whitespace-nowrap">Admin (571617)</span>
+          <button 
+            type="button" 
+            onclick="logoutAdmin()" 
+            class="text-[10px] sm:text-[11px] bg-red-500/80 hover:bg-red-600 text-white font-bold px-2 py-0.5 rounded-lg transition ml-1 cursor-pointer whitespace-nowrap"
+          >
+            Keluar
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+  <div id="toast-container" class="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 left-4 sm:left-auto z-50 flex flex-col space-y-3 pointer-events-none max-w-sm w-auto"></div>
+
+  <!-- ==================== MAIN CONTENT VIEW CONTAINER ==================== -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+
+    <!-- #################################################################### -->
+    <!-- VIEW 0: REGISTER PAGE (Halaman Pertama - Minimalis, Elegan, Mobile-Friendly) -->
+    <!-- #################################################################### -->
+    <div id="view-register" class="transition-opacity duration-300">
+      
+      <!-- Top Brand Tag & Sub-hero Header -->
+      <div class="max-w-3xl mx-auto mb-6 sm:mb-8 text-center px-2">
+        <div class="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-[#0381FE] text-xs font-semibold shadow-2xs mb-3">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+          <span class="font-bold">Samsung Finance+</span>
+          <span class="text-blue-300">•</span>
+          <span>Bunga 0% &amp; DP Rp 0</span>
+        </div>
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-[#002D5E] tracking-tight leading-tight mb-2.5">
+          Pengajuan Cicilan Resmi Samsung
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+          Dapatkan limit pembiayaan resmi Samsung dengan proses persetujuan kilat 5 menit secara online tanpa survei fisik.
+        </p>
+      </div>
+
+      <!-- Main Two-Column Layout -->
+      <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start mb-8">
+        
+        <!-- LEFT: Dedicated Registration Card (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-8 space-y-5 relative">
+          
+          <!-- Stepper Indicator -->
+          <div class="pb-3 border-b border-slate-100">
+            <div class="flex items-center justify-between text-xs font-bold mb-2">
+              <span class="text-[#0381FE] flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-[#0381FE] text-white flex items-center justify-center text-xs font-bold">1</span>
+                <span>Langkah 1: Verifikasi Nomor HP Aktif SMS</span>
+              </span>
+              <span class="text-slate-400 font-medium">1 dari 2</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="h-1.5 rounded-full bg-[#0381FE]"></div>
+              <div class="h-1.5 rounded-full bg-slate-200"></div>
+            </div>
+          </div>
+
+          <!-- Card Heading -->
+          <div class="space-y-1">
+            <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-snug">Mulai Pengajuan Anda</h2>
+            <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              Masukkan nomor HP aktif SMS Anda untuk memulai verifikasi identitas pengajuan.
+            </p>
+          </div>
+
+          <!-- Registration Form -->
+          <form id="phone-reg-form" onsubmit="handlePhoneRegSubmit(event)" novalidate class="space-y-4 pt-1">
+            <div>
+              <label for="reg-phone-input" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                Nomor HP Aktif SMS <span class="text-red-500">*</span>
+              </label>
+              
+              <!-- Clean Input Group: Zero Text Collisions -->
+              <div class="flex items-center rounded-xl border border-slate-300 focus-within:ring-2 focus-within:ring-[#0381FE] focus-within:border-transparent transition bg-white shadow-2xs overflow-hidden">
+                <div class="px-3.5 py-3 bg-slate-50 border-r border-slate-200 text-slate-700 font-bold text-xs sm:text-sm flex items-center gap-1.5 select-none shrink-0">
+                  <span>🇮🇩</span>
+                  <span>+62</span>
+                </div>
+                <input 
+                  type="tel" 
+                  id="reg-phone-input" 
+                  name="regPhone"
+                  placeholder="81234567890" 
+                  maxlength="15"
+                  autocomplete="tel"
+                  class="w-full px-3.5 py-3 text-sm sm:text-base font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none bg-transparent"
+                />
+              </div>
+              <p id="error-reg-phone" class="mt-1.5 text-xs text-red-600 font-medium hidden">
+                ⚠️ Nomor HP aktif SMS pemohon wajib 8–14 digit angka valid.
+              </p>
+            </div>
+
+            <!-- Trust Points -->
+            <div class="space-y-2 py-1 text-xs text-slate-600">
+              <div class="flex items-center gap-2.5">
+                <div class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</div>
+                <span>Bunga promo 0% &amp; uang muka (DP) mulai Rp 0</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <div class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</div>
+                <span>Persetujuan limit cepat tanpa jaminan dan tanpa survei fisik</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <div class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</div>
+                <span>Data terlindungi enkripsi 256-bit standar Samsung Knox</span>
+              </div>
+            </div>
+
+            <!-- Single Registration Button -->
+            <button 
+              type="submit" 
+              id="btn-phone-reg-next"
+              class="w-full py-3.5 rounded-xl bg-[#0381FE] hover:bg-[#0062cc] text-white font-bold text-xs sm:text-sm tracking-wide shadow-md hover:shadow-lg shadow-blue-500/20 transition transform active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer mt-2"
+            >
+              <span>Daftar &amp; Mulai Pengajuan Cicilan</span>
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </button>
+          </form>
+
+          <!-- Privacy & Regulatory disclaimer -->
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+              </svg>
+              <span>Enkripsi Aman 256-Bit</span>
+            </span>
+            <span>Diawasi &amp; Terdaftar Resmi</span>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Unified Product Showcase & Benefits (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <!-- Promo Highlights Hero Card -->
+          <div class="bg-gradient-to-br from-[#002D5E] via-[#003874] to-[#0381FE] text-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+            <div class="relative z-10 space-y-3.5">
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-blue-100 text-xs font-semibold">
+                <span>⭐</span>
+                <span>Program Promo Resmi 2025</span>
+              </div>
+              
+              <div>
+                <h3 class="text-lg sm:text-2xl font-black text-white leading-snug">
+                  Galaxy S24 Series &amp; Z Fold6
+                </h3>
+                <p class="text-xs sm:text-sm text-blue-100 mt-1.5 font-light leading-relaxed">
+                  Promo bunga 0% s/d 12 bulan dengan DP Rp 0. Gratis perlindungan Samsung Care+ selama 1 tahun.
+                </p>
+              </div>
+
+              <!-- Key stats grid -->
+              <div class="grid grid-cols-3 gap-2 pt-3 border-t border-white/15 text-center">
+                <div class="bg-white/10 rounded-xl p-2.5">
+                  <div class="text-sm sm:text-base font-black text-white leading-tight">0%</div>
+                  <div class="text-[10px] text-blue-200 mt-0.5">Bunga Promo</div>
+                </div>
+                <div class="bg-white/10 rounded-xl p-2.5">
+                  <div class="text-sm sm:text-base font-black text-white leading-tight">5 Menit</div>
+                  <div class="text-[10px] text-blue-200 mt-0.5">Proses Cepat</div>
+                </div>
+                <div class="bg-white/10 rounded-xl p-2.5">
+                  <div class="text-sm sm:text-base font-black text-white leading-tight">DP Rp 0</div>
+                  <div class="text-[10px] text-blue-200 mt-0.5">Tanpa DP</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Cards -->
+          <div class="space-y-2.5">
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-blue-50 text-[#0381FE] flex items-center justify-center font-bold text-sm shrink-0 border border-blue-100">
+                ⚡
+              </div>
+              <div>
+                <h4 class="text-xs sm:text-sm font-bold text-slate-800">Verifikasi Limit Instan</h4>
+                <p class="text-[11px] sm:text-xs text-slate-500">Hasil verifikasi permohonan langsung diketahui secara online.</p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0 border border-emerald-100">
+                🏷️
+              </div>
+              <div>
+                <h4 class="text-xs sm:text-sm font-bold text-slate-800">Cicilan Terjangkau</h4>
+                <p class="text-[11px] sm:text-xs text-slate-500">Mulai dari Rp 149rb/bulan untuk Galaxy Series dan produk lainnya.</p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0 border border-indigo-100">
+                🛡️
+              </div>
+              <div>
+                <h4 class="text-xs sm:text-sm font-bold text-slate-800">Keamanan Samsung Knox</h4>
+                <p class="text-[11px] sm:text-xs text-slate-500">Data pribadi dan foto KTP terenkripsi aman standar perbankan.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Bottom Trust Partner Strip -->
+      <div class="max-w-5xl mx-auto pt-4 sm:pt-6 border-t border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 text-center">
+        <div class="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-100 shadow-2xs">
+          <div class="text-xs font-extrabold text-slate-800">SAMSUNG</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Official Partner Network</div>
+        </div>
+        <div class="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-100 shadow-2xs">
+          <div class="text-xs font-extrabold text-[#0381FE]">KNOX</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Defense-Grade Security</div>
+        </div>
+        <div class="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-100 shadow-2xs">
+          <div class="text-xs font-extrabold text-emerald-700">256-BIT SSL</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">End-to-End Encryption</div>
+        </div>
+        <div class="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-100 shadow-2xs">
+          <div class="text-xs font-extrabold text-indigo-700">ISO 27001</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Information Security</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- #################################################################### -->
+    <!-- VIEW 1: USER VIEW (TAHAP 2 & 3: FORM & STATUS) -->
+    <!-- #################################################################### -->
+    <div id="view-user" class="hidden transition-opacity duration-300">
+
+      <!-- SUB-VIEW A: FORM PENGAJUAN DATA (Tahap 2) -->
+      <div id="user-form-section" class="max-w-3xl mx-auto">
+        
+        <!-- Header & Step Indicator Card -->
+        <div class="mb-5 sm:mb-6 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/90 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between text-xs font-bold mb-2 gap-2">
+            <span class="text-[#0381FE] flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-[#0381FE] text-white flex items-center justify-center text-xs font-bold">2</span>
+              <span>Langkah 2 dari 2: Pengisian Data Identitas &amp; Dokumen</span>
+            </span>
+            <div class="flex items-center gap-2">
+              <!-- Auto-save indicator badge -->
+              <span id="draft-autosave-badge" class="hidden text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 text-[11px] font-medium items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="draft-autosave-text">Tersimpan otomatis</span>
+              </span>
+              <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[11px] font-bold flex items-center gap-1">
+                <span>✓</span> Nomor HP Aktif SMS
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mb-4">
+            <div class="h-1.5 rounded-full bg-[#0381FE]"></div>
+            <div class="h-1.5 rounded-full bg-[#0381FE]"></div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+            <div class="flex items-center gap-1.5 text-slate-600">
+              <span>Nomor Terverifikasi:</span>
+              <span id="form-header-phone-badge" class="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">-</span>
+            </div>
+            <button 
+              type="button" 
+              onclick="switchView('register')" 
+              class="text-[#0381FE] hover:text-blue-800 font-bold flex items-center gap-1 cursor-pointer transition self-start sm:self-auto text-[11px] sm:text-xs"
+            >
+              <span>← Ganti Nomor HP</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Restored Draft Banner -->
+        <div id="draft-restored-banner" class="hidden mb-5 p-3.5 sm:p-4 bg-blue-50 border border-blue-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-blue-900 shadow-2xs">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-100 text-[#0381FE] flex items-center justify-center font-bold text-sm shrink-0">
+              💾
+            </div>
+            <div>
+              <p class="font-bold text-slate-800">Progres Formulir Tersimpan Otomatis</p>
+              <p class="text-slate-600 text-[11px] sm:text-xs">Data yang Anda isi sebelumnya telah dipulihkan. Anda dapat langsung melanjutkan pengisian.</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            onclick="handleDiscardDraft()" 
+            class="text-[11px] sm:text-xs font-bold text-red-600 hover:text-red-700 px-3 py-1.5 rounded-xl bg-white border border-red-200 hover:bg-red-50 transition shrink-0 cursor-pointer shadow-2xs"
+          >
+            Kosongkan &amp; Mulai Ulang
+          </button>
+        </div>
+
+        <!-- The Main Clean Application Form -->
+        <form id="loan-application-form" novalidate class="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/90 p-5 sm:p-8 mb-10 space-y-7">
+          
+          <!-- Title & Intro -->
+          <div class="border-b border-slate-100 pb-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg sm:text-2xl font-bold text-[#002D5E]">Formulir Pengajuan Cicilan</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Isi seluruh data dengan jujur sesuai identitas pada e-KTP fisik Anda.</p>
+              </div>
+              <div class="hidden md:flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+                <span>🔒</span>
+                <span>Enkripsi 256-Bit</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 1: Data Identitas Diri -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100">
+              <span class="w-6 h-6 rounded-lg bg-blue-50 text-[#0381FE] flex items-center justify-center text-xs font-bold">1</span>
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Identitas Pribadi &amp; Kontak</h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- 1. Nama Lengkap -->
+              <div>
+                <label for="input-nama" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Nama Lengkap (Sesuai KTP) <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="input-nama" 
+                  name="nama" 
+                  placeholder="Contoh: Budi Santoso"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-nama" class="mt-1 text-xs text-red-600 hidden">Nama lengkap wajib diisi minimal 3 karakter.</p>
+              </div>
+
+              <!-- 2. Email -->
+              <div>
+                <label for="input-email" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Email Aktif <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="email" 
+                  id="input-email" 
+                  name="email" 
+                  placeholder="budi.santoso@gmail.com"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-email" class="mt-1 text-xs text-red-600 hidden">Format email tidak valid (contoh: nama@domain.com).</p>
+              </div>
+
+              <!-- 3. Tempat, Tanggal Lahir -->
+              <div>
+                <label for="input-ttl" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Tempat, Tanggal Lahir <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="input-ttl" 
+                  name="ttl" 
+                  placeholder="Jakarta, 17 Agustus 1995"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-ttl" class="mt-1 text-xs text-red-600 hidden">Tempat dan tanggal lahir wajib diisi.</p>
+              </div>
+
+              <!-- 4. NIK (16 Digit) -->
+              <div>
+                <label for="input-nik" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  NIK (16 Digit KTP) <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="input-nik" 
+                  name="nik" 
+                  maxlength="16"
+                  placeholder="3171xxxxxxxxxxxx"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-nik" class="mt-1 text-xs text-red-600 hidden">NIK wajib tepat 16 digit angka.</p>
+              </div>
+
+              <!-- 5. No HP Terdaftar -->
+              <div>
+                <label for="input-nohp" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Nomor HP Aktif SMS Terdaftar
+                </label>
+                <div class="flex items-center rounded-xl border border-slate-200 bg-slate-100 text-slate-700 overflow-hidden">
+                  <div class="px-3 py-2.5 bg-slate-200/70 border-r border-slate-200 text-slate-600 font-bold text-xs select-none">
+                    🔒 Terverifikasi
+                  </div>
+                  <input 
+                    type="text" 
+                    id="input-nohp" 
+                    name="nohp" 
+                    disabled 
+                    readonly 
+                    class="w-full px-3.5 py-2.5 text-sm font-semibold text-slate-800 bg-transparent cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <!-- 6. Nama Ibu Kandung -->
+              <div>
+                <label for="input-ibu" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Nama Gadis Ibu Kandung <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="input-ibu" 
+                  name="ibu" 
+                  placeholder="Contoh: Siti Aminah"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-ibu" class="mt-1 text-xs text-red-600 hidden">Nama ibu kandung wajib diisi.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: Data Pekerjaan & Finansial -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100">
+              <span class="w-6 h-6 rounded-lg bg-blue-50 text-[#0381FE] flex items-center justify-center text-xs font-bold">2</span>
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Pekerjaan &amp; Finansial</h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Pekerjaan -->
+              <div>
+                <label for="input-pekerjaan" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Pekerjaan Saat Ini <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="input-pekerjaan" 
+                  name="pekerjaan" 
+                  placeholder="Contoh: Karyawan Swasta / Wirausaha"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-pekerjaan" class="mt-1 text-xs text-red-600 hidden">Pekerjaan wajib diisi.</p>
+              </div>
+
+              <!-- Lama Bekerja -->
+              <div>
+                <label for="input-lama-kerja" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Lama Bekerja <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="input-lama-kerja" 
+                  name="lamaKerja" 
+                  placeholder="Contoh: 2 Tahun 6 Bulan"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-lama-kerja" class="mt-1 text-xs text-red-600 hidden">Lama bekerja wajib diisi.</p>
+              </div>
+
+              <!-- Penghasilan per Bulan -->
+              <div>
+                <label for="input-gaji" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Penghasilan per Bulan (Rp) <span class="text-red-500">*</span>
+                </label>
+                <div class="flex items-center rounded-xl border border-slate-300 focus-within:ring-2 focus-within:ring-[#0381FE] focus-within:border-transparent transition bg-white shadow-2xs overflow-hidden">
+                  <span class="px-3.5 py-2.5 bg-slate-50 border-r border-slate-200 text-slate-600 font-bold text-xs sm:text-sm select-none shrink-0">
+                    Rp
+                  </span>
+                  <input 
+                    type="text" 
+                    id="input-gaji" 
+                    name="gaji" 
+                    placeholder="7.500.000"
+                    class="w-full px-3.5 py-2.5 text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none bg-transparent"
+                  />
+                </div>
+                <p id="error-gaji" class="mt-1 text-xs text-red-600 hidden">Penghasilan wajib diisi dengan angka valid.</p>
+              </div>
+
+              <!-- No NPWP -->
+              <div>
+                <label for="input-npwp" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  No. NPWP <span class="text-slate-400 font-normal">(Opsional)</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="input-npwp" 
+                  name="npwp" 
+                  maxlength="16"
+                  placeholder="15 atau 16 digit angka (opsional)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-npwp" class="mt-1 text-xs text-red-600 hidden">Jika diisi, NPWP harus 15 atau 16 digit angka.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: Data Pendidikan & Status Keluarga -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100">
+              <span class="w-6 h-6 rounded-lg bg-blue-50 text-[#0381FE] flex items-center justify-center text-xs font-bold">3</span>
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Pendidikan &amp; Keluarga</h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- Pendidikan -->
+              <div>
+                <label for="input-pendidikan" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Pendidikan Terakhir <span class="text-red-500">*</span>
+                </label>
+                <select 
+                  id="input-pendidikan" 
+                  name="pendidikan" 
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent bg-white transition"
+                >
+                  <option value="">-- Pilih --</option>
+                  <option value="SD">SD</option>
+                  <option value="SMP">SMP</option>
+                  <option value="SMA">SMA / SMK Sederajat</option>
+                  <option value="D3">Diploma (D3)</option>
+                  <option value="S1">Sarjana (S1)</option>
+                  <option value="S2">Magister (S2)</option>
+                  <option value="S3">Doktor (S3)</option>
+                </select>
+                <p id="error-pendidikan" class="mt-1 text-xs text-red-600 hidden">Pilih jenjang pendidikan.</p>
+              </div>
+
+              <!-- Status Perkawinan -->
+              <div>
+                <label for="input-status-kawin" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Status Pernikahan <span class="text-red-500">*</span>
+                </label>
+                <select 
+                  id="input-status-kawin" 
+                  name="statusKawin" 
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent bg-white transition"
+                >
+                  <option value="">-- Pilih --</option>
+                  <option value="Belum Menikah">Belum Menikah</option>
+                  <option value="Menikah">Menikah</option>
+                  <option value="Cerai">Cerai</option>
+                </select>
+                <p id="error-status-kawin" class="mt-1 text-xs text-red-600 hidden">Pilih status pernikahan.</p>
+              </div>
+
+              <!-- Jumlah Anak -->
+              <div>
+                <label for="input-anak" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Jumlah Anak <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="number" 
+                  id="input-anak" 
+                  name="anak" 
+                  min="0" 
+                  placeholder="0"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+                />
+                <p id="error-anak" class="mt-1 text-xs text-red-600 hidden">Jumlah anak wajib diisi (minimal 0).</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 4: Alamat Domisili & Unggah Foto KTP -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100">
+              <span class="w-6 h-6 rounded-lg bg-blue-50 text-[#0381FE] flex items-center justify-center text-xs font-bold">4</span>
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Domisili &amp; Foto e-KTP</h3>
+            </div>
+
+            <!-- Alamat & Patokan -->
+            <div>
+              <label for="input-alamat" class="block text-xs font-bold text-slate-700 mb-1.5">
+                Alamat Domisili Lengkap &amp; Patokan Rumah <span class="text-red-500">*</span>
+              </label>
+              <textarea 
+                id="input-alamat" 
+                name="alamat" 
+                rows="3" 
+                placeholder="Jl. Merdeka No. 45 RT 02/RW 04, Kel. Gambir, Jakarta Pusat. (Patokan: Depan Masjid Nurul Huda cat hijau)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+              ></textarea>
+              <p id="error-alamat" class="mt-1 text-xs text-red-600 hidden">Alamat dan patokan rumah lengkap wajib diisi.</p>
+            </div>
+
+            <!-- Upload Foto KTP Asli -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                Upload Foto e-KTP Asli <span class="text-red-500">*</span>
+              </label>
+
+              <!-- Helpful Clean Guidelines -->
+              <div class="mb-3 p-3 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-slate-600 space-y-1">
+                <div class="font-bold text-[#002D5E] flex items-center gap-1.5">
+                  <span>📷</span>
+                  <span>Petunjuk Foto KTP yang Baik:</span>
+                </div>
+                <ul class="list-disc list-inside text-[11px] sm:text-xs text-slate-600 space-y-0.5 pl-1">
+                  <li>Gunakan e-KTP asli fisik, bukan fotokopi atau hasil scan buram.</li>
+                  <li>Pastikan seluruh 4 sudut KTP masuk ke dalam bingkai foto.</li>
+                  <li>Teks nama, NIK, dan tanggal lahir harus terbaca jelas tanpa pantulan kilat cahaya.</li>
+                </ul>
+              </div>
+
+              <!-- Upload Area Dropzone -->
+              <div 
+                id="ktp-dropzone" 
+                class="border-2 border-dashed border-slate-300 rounded-2xl p-5 sm:p-6 text-center hover:border-[#0381FE] transition bg-slate-50/50 cursor-pointer relative"
+                onclick="document.getElementById('input-ktp-file').click()"
+              >
+                <input 
+                  type="file" 
+                  id="input-ktp-file" 
+                  accept="image/*" 
+                  class="hidden" 
+                  onchange="handleKtpFileSelect(event)"
+                />
+
+                <!-- Empty State -->
+                <div id="ktp-empty-state" class="space-y-2">
+                  <div class="w-12 h-12 mx-auto rounded-2xl bg-blue-50 text-[#0381FE] flex items-center justify-center border border-blue-100 shadow-2xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="inline-block px-3 py-1 rounded-lg bg-[#0381FE] text-white text-xs font-bold shadow-xs">
+                      Pilih Foto KTP
+                    </span>
+                    <p class="text-xs text-slate-500 mt-1.5">Atau seret dan lepas file gambar ke sini</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Format JPG, PNG, WEBP (Maksimal 5MB)</p>
+                  </div>
+                </div>
+
+                <!-- Preview State (Hidden by default) -->
+                <div id="ktp-preview-state" class="hidden flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <img id="ktp-preview-img" src="" alt="Preview KTP" class="max-h-36 max-w-xs object-contain rounded-xl shadow border border-slate-200 bg-white" />
+                  <div class="text-left space-y-1.5">
+                    <div class="flex items-center space-x-1.5">
+                      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                      <p id="ktp-file-name" class="text-xs font-bold text-slate-800 truncate max-w-[200px]">ktp-file.jpg</p>
+                    </div>
+                    <p class="text-xs text-emerald-600 font-medium">✓ Foto KTP siap diunggah</p>
+                    <button 
+                      type="button" 
+                      onclick="removeKtpImage(event)" 
+                      class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition cursor-pointer border border-red-200"
+                    >
+                      Ganti Foto KTP
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+              <p id="error-ktp" class="mt-1.5 text-xs text-red-600 font-medium hidden">Foto KTP wajib diunggah.</p>
+            </div>
+          </div>
+
+          <!-- Term of Agreement Notice -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-[#0381FE] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            <p class="leading-relaxed">
+              Dengan mengirim formulir ini, Anda menyatakan bahwa seluruh data yang diberikan adalah benar dan sah sesuai dokumen resmi kependudukan serta menyetujui pemrosesan data untuk permohonan cicilan Samsung Finance+.
+            </p>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button 
+              type="button" 
+              onclick="resetUserForm(false)" 
+              class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-50 transition cursor-pointer text-center"
+            >
+              Reset Isian
+            </button>
+            <button 
+              type="submit" 
+              id="btn-submit-loan"
+              class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#0381FE] hover:bg-[#0062cc] text-white font-bold text-xs sm:text-sm tracking-wide shadow-md hover:shadow-lg shadow-blue-500/20 transition active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Kirim Pengajuan Cicilan</span>
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+
+      <!-- SUB-VIEW B: HALAMAN SUKSES (Tahap 3) -->
+      <div id="user-success-section" class="max-w-2xl mx-auto py-8 hidden">
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 sm:p-12 text-center relative overflow-hidden">
+          
+          <!-- Decorative Top Bar -->
+          <div class="absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r from-emerald-400 via-[#0381FE] to-blue-600"></div>
+
+          <!-- Checkmark Icon Animation -->
+          <div class="w-20 h-20 mx-auto rounded-full bg-emerald-50 text-emerald-500 border-4 border-emerald-100 flex items-center justify-center mb-6 shadow-inner">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0b162c] mb-3">
+            Data Tersubmit Sukses!
+          </h2>
+
+          <div class="inline-block bg-blue-50 text-[#0381FE] text-xs font-semibold px-4 py-1.5 rounded-full mb-4">
+            ID Pengajuan: <span id="success-submission-id" class="font-bold font-mono">SF-XXXXXX</span>
+          </div>
+
+          <p class="text-base sm:text-lg font-medium text-slate-700 mb-2">
+            Segera konfirmasi ke WhatsApp Admin untuk verifikasi akhir & persetujuan cicilan!
+          </p>
+          <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mb-8">
+            Tim verifikator Samsung Finance siap memproses data pengajuan Anda dalam hitungan menit setelah menerima konfirmasi chat WhatsApp resmi ke <strong class="text-slate-800 font-bold">+62 831-8211-7947</strong>.
+          </p>
+
+          <!-- Applicant Summary Details -->
+          <div class="bg-slate-50 rounded-2xl p-5 mb-8 text-left border border-slate-200 text-xs sm:text-sm space-y-2">
+            <div class="flex justify-between border-b border-slate-200/60 pb-2">
+              <span class="text-slate-500">Nama Pemohon:</span>
+              <span id="success-nama" class="font-bold text-slate-800">-</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-200/60 pb-2">
+              <span class="text-slate-500">Nomor HP Aktif SMS Terdaftar:</span>
+              <span id="success-nohp" class="font-semibold text-slate-800">-</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-200/60 pb-2">
+              <span class="text-slate-500">WhatsApp Admin Resmi:</span>
+              <span class="font-mono font-bold text-emerald-700">+62 831-8211-7947</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-200/60 pb-2">
+              <span class="text-slate-500">Waktu Pengajuan:</span>
+              <span id="success-time" class="text-slate-700">-</span>
+            </div>
+            <div class="flex justify-between pt-1">
+              <span class="text-slate-500">Status Saat Ini:</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                Waiting Verifikasi
+              </span>
+            </div>
+          </div>
+
+          <!-- Action CTA WhatsApp Button -->
+          <div class="space-y-4">
+            <a 
+              id="cta-whatsapp-link"
+              href="https://wa.me/6283182117947?text=Halo%20Admin,%20saya%20sudah%20mengisi%20form%20pengajuan%20cicilan" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="w-full inline-flex items-center justify-center space-x-3 px-8 py-4 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-base shadow-lg shadow-emerald-500/30 transition transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <!-- WhatsApp SVG Icon -->
+              <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
+              </svg>
+              <span>Konfirmasi Sekarang ke WhatsApp Admin (+62 831-8211-7947)</span>
+            </a>
+
+            <div>
+              <button 
+                type="button" 
+                onclick="startNewUserSubmission()" 
+                class="text-xs font-semibold text-slate-500 hover:text-[#0381FE] transition py-2"
+              >
+                + Buat Pengajuan Baru
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- #################################################################### -->
+    <!-- VIEW 2: ADMIN DASHBOARD VIEW -->
+    <!-- #################################################################### -->
+    <div id="view-admin" class="hidden transition-opacity duration-300">
+      
+      <!-- FLASHING WARNING BANNER FOR TIMERS (7+ Minutes Waiting/Pending) -->
+      <div id="admin-timer-warning-banner" class="hidden mb-5 rounded-2xl bg-red-600 text-white py-3 px-4 sm:px-6 shadow-md warning-pulse border border-red-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 z-10">
+        <div class="flex items-center gap-2.5 text-xs sm:text-sm font-bold">
+          <span class="text-base flex-shrink-0">⚠️ PERINGATAN:</span>
+          <span id="admin-warning-banner-text" class="text-xs sm:text-sm font-medium">Pengajuan telah berada di status Waiting selama lebih dari 7 menit!</span>
+        </div>
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <button 
+            type="button" 
+            onclick="dismissWarningBanner()" 
+            class="text-xs bg-white/20 hover:bg-white/35 px-3 py-1.5 rounded-xl transition font-semibold text-white flex-shrink-0 cursor-pointer"
+            title="Tutup Notifikasi"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+
+      <!-- ADMIN IDENTITY CARD (Active Admin Account: 571617) -->
+      <div id="admin-identity-banner" class="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#002D5E] via-[#003874] to-[#0381FE] text-white shadow-md border border-blue-400/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center font-black text-white text-base shadow-xs flex-shrink-0">
+            AD
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="font-extrabold text-base sm:text-lg text-white">Akun Administrator Utama</h2>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-400 text-slate-950 shadow-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-950 animate-pulse"></span>
+                AKTIF (571617)
+              </span>
+            </div>
+            <p class="text-xs text-blue-100 mt-0.5">
+              Login terverifikasi via Nomor HP <span class="font-mono font-bold text-white bg-white/10 px-1.5 py-0.5 rounded">571617</span>. Otoritas penuh tinjauan & persetujuan nasabah.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 self-start sm:self-center flex-wrap">
+          <button 
+            type="button" 
+            onclick="switchView('user')" 
+            class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            title="Buka tampilan formulir pengajuan cicilan user"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Buka Form User</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="logoutAdmin()" 
+            class="px-3 py-1.5 rounded-xl bg-red-500/80 hover:bg-red-600 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            title="Keluar dari akun admin 571617"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span>Keluar Admin</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Header & Top Stats -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold text-[#002D5E] flex items-center gap-2 flex-wrap">
+            <span>Dashboard Verifikasi Samsung Finance</span>
+            <span class="text-xs bg-blue-100 text-[#0381FE] font-bold px-2.5 py-0.5 rounded-full">Real-time</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Pantau dan tindak lanjuti status pengajuan cicilan seluruh nasabah Samsung.
+          </p>
+        </div>
+
+        <!-- Admin Utilities & Test Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button 
+            type="button" 
+            onclick="addMockExpiredItem()" 
+            class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-xs font-semibold hover:bg-amber-100 transition flex items-center space-x-1.5 shadow-2xs cursor-pointer"
+            title="Tambah data berstatus waiting >7 menit untuk menguji banner merah"
+          >
+            <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Uji: Lewat 7 Mnt</span>
+          </button>
+
+          <button 
+            type="button" 
+            onclick="resetToDefaultMockData()" 
+            class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition cursor-pointer shadow-2xs"
+          >
+            Reset Default
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Summary Stats Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 sm:mb-6">
+        
+        <!-- Total -->
+        <div class="samsung-navy p-3.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-sm border border-blue-900/30 text-white">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] sm:text-xs font-bold text-white/80 uppercase tracking-wider">Total Masuk</span>
+            <span class="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-white/10 text-white">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </span>
+          </div>
+          <div id="stat-total" class="text-xl sm:text-3xl font-extrabold text-white mt-1.5 sm:mt-2">0</div>
+          <span class="text-[10px] sm:text-[11px] text-white/70">Catatan pengajuan</span>
+        </div>
+
+        <!-- Waiting -->
+        <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-sm border border-amber-200/80">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] sm:text-xs font-bold text-amber-700 uppercase tracking-wider">Waiting</span>
+            <span class="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </span>
+          </div>
+          <div id="stat-waiting" class="text-xl sm:text-3xl font-extrabold text-amber-600 mt-1.5 sm:mt-2">0</div>
+          <span class="text-[10px] sm:text-[11px] text-amber-600/80">Antrean awal</span>
+        </div>
+
+        <!-- Pending -->
+        <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-sm border border-blue-200/80">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] sm:text-xs font-bold text-[#0381FE] uppercase tracking-wider">Pending</span>
+            <span class="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-blue-50 text-[#0381FE]">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </span>
+          </div>
+          <div id="stat-pending" class="text-xl sm:text-3xl font-extrabold text-[#0381FE] mt-1.5 sm:mt-2">0</div>
+          <span class="text-[10px] sm:text-[11px] text-blue-500">Proses review</span>
+        </div>
+
+        <!-- Done -->
+        <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-sm border border-emerald-200/80">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] sm:text-xs font-bold text-emerald-700 uppercase tracking-wider">Done</span>
+            <span class="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </span>
+          </div>
+          <div id="stat-done" class="text-xl sm:text-3xl font-extrabold text-emerald-600 mt-1.5 sm:mt-2">0</div>
+          <span class="text-[10px] sm:text-[11px] text-emerald-600/80">Disetujui</span>
+        </div>
+
+      </div>
+
+      <!-- Filters & Search Bar -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+        
+        <!-- Search Input -->
+        <div class="w-full md:w-80 lg:w-96 relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </span>
+          <input 
+            type="text" 
+            id="admin-search-input" 
+            oninput="handleAdminSearch()"
+            placeholder="Cari nama, NIK, HP, atau ID..."
+            class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0381FE] focus:border-transparent transition"
+          />
+        </div>
+
+        <!-- Filter Status Buttons -->
+        <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 custom-scrollbar">
+          <button 
+            type="button" 
+            onclick="setAdminStatusFilter('all')" 
+            id="filter-btn-all"
+            class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0381FE] text-white shadow-sm transition whitespace-nowrap cursor-pointer"
+          >
+            Semua (<span id="filter-count-all">0</span>)
+          </button>
+          <button 
+            type="button" 
+            onclick="setAdminStatusFilter('waiting')" 
+            id="filter-btn-waiting"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition whitespace-nowrap cursor-pointer"
+          >
+            Waiting (<span id="filter-count-waiting">0</span>)
+          </button>
+          <button 
+            type="button" 
+            onclick="setAdminStatusFilter('pending')" 
+            id="filter-btn-pending"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition whitespace-nowrap cursor-pointer"
+          >
+            Pending (<span id="filter-count-pending">0</span>)
+          </button>
+          <button 
+            type="button" 
+            onclick="setAdminStatusFilter('done')" 
+            id="filter-btn-done"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition whitespace-nowrap cursor-pointer"
+          >
+            Done (<span id="filter-count-done">0</span>)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Submissions Card Container -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-12">
+        <div class="p-3.5 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/50">
+          <div>
+            <h2 class="text-sm font-bold text-slate-800">Daftar Formulir Pengajuan</h2>
+            <p class="text-xs text-slate-500">Read-Only data pemohon, Admin dapat mengubah status permohonan secara langsung.</p>
+          </div>
+          
+          <div class="flex items-center justify-between sm:justify-end gap-3">
+            <!-- View Mode Switcher: Tabel vs Kartu -->
+            <div class="inline-flex bg-slate-200/80 p-0.5 rounded-lg text-xs font-semibold">
+              <button 
+                type="button" 
+                id="btn-view-mode-table"
+                onclick="setAdminViewMode('table')" 
+                class="px-2.5 py-1 rounded-md transition bg-white text-[#0381FE] shadow-xs flex items-center gap-1 cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span>Tabel</span>
+              </button>
+              <button 
+                type="button" 
+                id="btn-view-mode-card"
+                onclick="setAdminViewMode('card')" 
+                class="px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                <span>Kartu (Mobile)</span>
+              </button>
+            </div>
+
+            <div class="text-[11px] text-slate-400 font-mono hidden sm:block" id="admin-last-sync-time">
+              Sync otomatis
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Scroll Hint (visible when table mode on mobile) -->
+        <div id="table-scroll-hint" class="hidden md:hidden items-center justify-between px-4 py-2 bg-blue-50/70 border-b border-blue-100 text-[11px] text-[#0381FE] font-semibold">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+            <span>Geser tabel ke samping untuk melihat seluruh kolom</span>
+          </span>
+          <span class="text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-200">Scroll →</span>
+        </div>
+
+        <!-- View 1: Responsive Table View -->
+        <div id="admin-table-container" class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="sticky top-0 bg-slate-50 text-slate-600 uppercase tracking-wider text-[11px] font-bold border-b border-slate-200">
+                <th class="py-3.5 px-4 whitespace-nowrap">ID & Waktu</th>
+                <th class="py-3.5 px-4 whitespace-nowrap min-w-[180px]">Pemohon & Kontak</th>
+                <th class="py-3.5 px-4 whitespace-nowrap min-w-[160px]">NIK & TTL</th>
+                <th class="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Pekerjaan & Gaji</th>
+                <th class="py-3.5 px-4 whitespace-nowrap min-w-[160px]">Pendidikan & Keluarga</th>
+                <th class="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Ibu Kandung & NPWP</th>
+                <th class="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Alamat & Patokan</th>
+                <th class="py-3.5 px-4 whitespace-nowrap text-center min-w-[100px]">Foto KTP</th>
+                <th class="py-3.5 px-4 whitespace-nowrap min-w-[130px]">Status Pengajuan</th>
+                <th class="py-3.5 px-4 whitespace-nowrap text-center min-w-[130px]">Aksi Lengkap</th>
+              </tr>
+            </thead>
+            <tbody id="admin-submissions-tbody" class="divide-y divide-slate-100">
+              <!-- Dynamically populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- View 2: Mobile Friendly Card View -->
+        <div id="admin-cards-container" class="hidden p-4 space-y-4 bg-slate-50/50">
+          <!-- Dynamically populated by JS -->
+        </div>
+
+        <!-- Empty state placeholder -->
+        <div id="admin-empty-state" class="py-12 text-center hidden">
+          <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+          </div>
+          <p class="text-sm font-semibold text-slate-700">Tidak ada data pengajuan yang ditemukan</p>
+          <p class="text-xs text-slate-400 mt-1">Coba ubah kata kunci pencarian atau reset filter status.</p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-white border-t border-slate-200 mt-auto py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1">
+        <span class="font-bold text-[#0b162c]">SAMSUNG Finance+</span>
+        <span>•</span>
+        <span>PT Samsung Electronics Indonesia Partner Network</span>
+        <span class="hidden md:inline">•</span>
+        <a 
+          href="https://wa.me/6283182117947" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="text-slate-600 hover:text-[#0381FE] transition inline-flex items-center gap-1"
+        >
+          <span>Admin WhatsApp:</span>
+          <span class="font-semibold text-emerald-600 underline">+62 831-8211-7947</span>
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-400">
+        Hak Cipta © 2026. Seluruh hak cipta dilindungi undang-undang.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 2: KONFIRMASI NOMOR HP (Tahap 1 Konfirmasi) -->
+  <!-- ==================================================================== -->
+  <div id="modal-phone-confirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3.5 sm:p-4 hidden transition-all overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-8 border border-slate-100 my-auto transform transition-all max-h-[92vh] overflow-y-auto">
+      
+      <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4 border border-amber-100 shadow-sm">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+
+      <h3 class="text-lg sm:text-xl font-extrabold text-[#0b162c] mb-1">
+        Konfirmasi Nomor HP Aktif SMS
+      </h3>
+      <p class="text-xs sm:text-sm text-slate-600 mb-5">
+        Apakah nomor HP aktif SMS yang Anda masukkan sudah benar?
+      </p>
+
+      <!-- Prominent Phone Number Box -->
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center mb-5">
+        <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider block mb-1">Nomor HP Aktif SMS Terdaftar</span>
+        <span id="confirm-phone-display" class="text-xl sm:text-2xl font-black text-[#0381FE] tracking-wider font-mono">081234567890</span>
+      </div>
+
+      <!-- Mandatory Checkbox -->
+      <div class="mb-6">
+        <label class="flex items-start space-x-3 cursor-pointer select-none">
+          <input 
+            type="checkbox" 
+            id="checkbox-confirm-phone" 
+            onchange="handleConfirmCheckboxToggle(event)"
+            class="mt-1 w-4 h-4 text-[#0381FE] border-slate-300 rounded focus:ring-[#0381FE]"
+          />
+          <span class="text-xs sm:text-sm text-slate-700 font-medium leading-tight">
+            Saya mengonfirmasi bahwa nomor HP aktif SMS di atas sudah benar.
+          </span>
+        </label>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button 
+          type="button" 
+          onclick="backToPhoneEdit()" 
+          class="w-full sm:w-1/2 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold text-xs sm:text-sm hover:bg-slate-50 transition"
+        >
+          Ubah Nomor
+        </button>
+        <button 
+          type="button" 
+          id="btn-proceed-to-form"
+          disabled 
+          onclick="proceedToApplicationForm()" 
+          class="w-full sm:w-1/2 py-3 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs sm:text-sm transition cursor-not-allowed shadow-none"
+        >
+          Lanjutkan Ke Form
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 3: PREVIEW FOTO KTP (Untuk Admin & User) -->
+  <!-- ==================================================================== -->
+  <div id="modal-ktp-viewer" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 hidden">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+          <h3 class="text-base font-bold text-slate-800">Preview Dokumen KTP Asli</h3>
+          <p id="ktp-modal-subtitle" class="text-xs text-slate-500">Pemohon: -</p>
+        </div>
+        <button 
+          type="button" 
+          onclick="closeKtpModal()" 
+          class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="py-4 flex-grow flex items-center justify-center overflow-auto bg-slate-900/5 rounded-2xl p-2 my-2">
+        <img id="ktp-modal-image" src="" alt="KTP Detail" class="max-w-full max-h-[60vh] object-contain rounded-xl shadow-lg border border-slate-200" />
+      </div>
+      <div class="pt-2 flex justify-end">
+        <button 
+          type="button" 
+          onclick="closeKtpModal()" 
+          class="px-5 py-2 rounded-xl bg-[#0381FE] text-white text-xs font-semibold hover:bg-blue-600 transition cursor-pointer"
+        >
+          Tutup Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 4: DOSSIER DETAIL LENGKAP PENGAJUAN (Admin Inspector) -->
+  <!-- ==================================================================== -->
+  <div id="modal-submission-detail" class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3.5 sm:p-5 hidden transition-all overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-200 my-auto overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-[#002D5E] text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+            SF
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-base sm:text-lg font-extrabold text-[#002D5E]" id="detail-modal-nama">-</h3>
+              <span id="detail-modal-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                Waiting
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">
+              ID Pengajuan: <span id="detail-modal-id" class="font-mono font-bold text-slate-800">-</span> • <span id="detail-modal-time">-</span>
+            </p>
+          </div>
+        </div>
+
+        <button 
+          type="button" 
+          onclick="closeDetailModal()" 
+          class="p-2 rounded-xl bg-slate-200/80 hover:bg-slate-300 text-slate-700 transition cursor-pointer"
+          title="Tutup"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-5 custom-scrollbar">
+        
+        <!-- Quick Action Bar for Admin -->
+        <div class="p-3 sm:p-4 rounded-2xl bg-blue-50/70 border border-blue-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            <a 
+              id="detail-modal-btn-wa" 
+              href="#" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>💬</span>
+              <span>Chat WhatsApp</span>
+            </a>
+            <a 
+              id="detail-modal-btn-tel" 
+              href="#" 
+              class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs transition flex items-center gap-1.5"
+            >
+              <span>📞</span>
+              <span>Telepon</span>
+            </a>
+            <a 
+              id="detail-modal-btn-mail" 
+              href="#" 
+              class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs transition flex items-center gap-1.5"
+            >
+              <span>✉️</span>
+              <span>Kirim Email</span>
+            </a>
+          </div>
+
+          <!-- Status Dropdown inside modal -->
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-600 whitespace-nowrap">Status:</label>
+            <select 
+              id="detail-modal-status-select" 
+              onchange="handleDetailModalStatusChange(this.value)"
+              class="px-3 py-1.5 rounded-xl border text-xs font-bold focus:outline-none transition bg-white"
+            >
+              <option value="waiting">🟡 Waiting</option>
+              <option value="pending">🔵 Pending</option>
+              <option value="done">🟢 Done</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 1. Identitas Lengkap -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#002D5E] flex items-center gap-1.5 pb-1 border-b border-slate-100">
+            <span>👤</span>
+            <span>Identitas Pribadi &amp; Kontak</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Nama Lengkap Sesuai KTP</span>
+              <span id="detail-d-nama" class="font-bold text-slate-800 text-sm">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Nomor Induk Kependudukan (NIK)</span>
+              <span id="detail-d-nik" class="font-mono font-bold text-slate-900 text-sm tracking-wider">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Tempat, Tanggal Lahir</span>
+              <span id="detail-d-ttl" class="font-semibold text-slate-800">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Nama Gadis Ibu Kandung</span>
+              <span id="detail-d-ibu" class="font-bold text-slate-800">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Nomor HP Aktif (SMS)</span>
+              <span id="detail-d-nohp" class="font-mono font-bold text-[#0381FE] text-sm">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Email Aktif</span>
+              <span id="detail-d-email" class="font-semibold text-slate-800">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Pekerjaan & Finansial -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#002D5E] flex items-center gap-1.5 pb-1 border-b border-slate-100">
+            <span>💼</span>
+            <span>Pekerjaan &amp; Finansial</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Pekerjaan Saat Ini</span>
+              <span id="detail-d-pekerjaan" class="font-bold text-slate-800 text-sm">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Lama Bekerja</span>
+              <span id="detail-d-lama-kerja" class="font-semibold text-slate-800">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Penghasilan Bersih per Bulan</span>
+              <span id="detail-d-gaji" class="font-black text-emerald-700 text-base">Rp -</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Nomor Pokok Wajib Pajak (NPWP)</span>
+              <span id="detail-d-npwp" class="font-mono font-semibold text-slate-700">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Pendidikan & Keluarga -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#002D5E] flex items-center gap-1.5 pb-1 border-b border-slate-100">
+            <span>🎓</span>
+            <span>Pendidikan &amp; Data Keluarga</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Pendidikan Terakhir</span>
+              <span id="detail-d-pendidikan" class="font-bold text-slate-800 text-sm">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Status Pernikahan</span>
+              <span id="detail-d-status-kawin" class="font-bold text-slate-800 text-sm">-</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Jumlah Anak</span>
+              <span id="detail-d-anak" class="font-bold text-slate-800 text-sm">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Domisili & Patokan -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#002D5E] flex items-center gap-1.5 pb-1 border-b border-slate-100">
+            <span>📍</span>
+            <span>Alamat Domisili &amp; Patokan Rumah</span>
+          </h4>
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs">
+            <p id="detail-d-alamat" class="text-slate-800 leading-relaxed font-medium">-</p>
+          </div>
+        </div>
+
+        <!-- 5. Dokumen Foto e-KTP -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-[#002D5E] flex items-center gap-1.5">
+              <span>🪪</span>
+              <span>Dokumen Foto e-KTP Asli</span>
+            </h4>
+            <button 
+              type="button" 
+              id="detail-modal-btn-zoom-ktp"
+              class="text-xs font-bold text-[#0381FE] hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <span>🔍</span>
+              <span>Buka Ukuran Penuh</span>
+            </button>
+          </div>
+          
+          <div class="bg-slate-900/5 rounded-2xl p-3 border border-slate-200 flex items-center justify-center">
+            <img 
+              id="detail-d-ktp-img" 
+              src="" 
+              alt="Foto e-KTP Pemohon" 
+              class="max-h-64 object-contain rounded-xl shadow-md border border-slate-300 bg-white"
+            />
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3">
+        <button 
+          type="button" 
+          id="detail-modal-btn-delete"
+          class="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-red-200"
+        >
+          <span>🗑️</span>
+          <span>Hapus Pengajuan</span>
+        </button>
+        <button 
+          type="button" 
+          onclick="closeDetailModal()" 
+          class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition cursor-pointer"
+        >
+          Tutup Dossier
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- JAVASCRIPT APPLICATION CORE -->
+  <!-- ==================================================================== -->
+  <script>
+    /* =======================================================================
+       GLOBAL CONSTANTS & STORAGE KEYS
+       ======================================================================= */
+    const STORAGE_KEY = 'samsung_finance_submissions_v1';
+    const CURRENT_USER_PHONE_KEY = 'samsung_finance_registered_phone';
+    const ADMIN_AUTH_KEY = 'samsung_finance_admin_active';
+    const ADMIN_MASTER_PHONE = '571617';
+    const OVERDUE_THRESHOLD_MS = 7 * 60 * 1000; // 7 Menit (420.000 ms)
+
+    // Application state
+    let state = {
+      currentView: 'user', // 'user' or 'admin'
+      registeredPhone: '',
+      isAdmin: false,
+      adminViewMode: 'table', // 'table' or 'card'
+      uploadedKtpBase64: '',
+      adminFilterStatus: 'all',
+      adminSearchQuery: '',
+      timerInterval: null
+    };
+
+    /* =======================================================================
+       DEFAULT MOCK DATA SEEDER
+       ======================================================================= */
+    // Helper to generate a realistic Indonesian KTP SVG Data URL
+    function generateMockKtpSvg(name, nik) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="380" viewBox="0 0 600 380">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#b6d9f8" />
+            <stop offset="100%" stop-color="#80baf2" />
+          </linearGradient>
+        </defs>
+        <rect width="600" height="380" rx="20" fill="url(#bg)" stroke="#1a5a9b" stroke-width="4"/>
+        <!-- Header -->
+        <text x="300" y="36" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#003366" text-anchor="middle">REPUBLIK INDONESIA</text>
+        <text x="300" y="58" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#003366" text-anchor="middle">PROVINSI DKI JAKARTA</text>
+        <!-- NIK -->
+        <text x="40" y="96" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#002244">NIK</text>
+        <text x="160" y="96" font-family="monospace" font-size="18" font-weight="bold" fill="#002244">: ${nik}</text>
+        <!-- Fields -->
+        <g font-family="Arial, sans-serif" font-size="12" fill="#001a33" font-weight="600">
+          <text x="40" y="130">Nama</text><text x="160" y="130">: ${name.toUpperCase()}</text>
+          <text x="40" y="155">Tempat/Tgl Lahir</text><text x="160" y="155">: JAKARTA, 12-05-1994</text>
+          <text x="40" y="180">Jenis Kelamin</text><text x="160" y="180">: LAKI-LAKI</text>
+          <text x="40" y="205">Alamat</text><text x="160" y="205">: JL. GALAXY NO. 7</text>
+          <text x="60" y="225">RT/RW</text><text x="160" y="225">: 003/005</text>
+          <text x="60" y="245">Kel/Desa</text><text x="160" y="245">: GAMBIR</text>
+          <text x="60" y="265">Kecamatan</text><text x="160" y="265">: GAMBIR</text>
+          <text x="40" y="290">Agama</text><text x="160" y="290">: ISLAM</text>
+          <text x="40" y="315">Status Perkawinan</text><text x="160" y="315">: MENIKAH</text>
+          <text x="40" y="340">Pekerjaan</text><text x="160" y="340">: KARYAWAN SWASTA</text>
+          <text x="40" y="365">Kewarganegaraan</text><text x="160" y="365">: WNI</text>
+        </g>
+        <!-- Photo Box -->
+        <rect x="440" y="110" width="120" height="160" rx="8" fill="#d9534f" stroke="#8c1c18" stroke-width="2"/>
+        <circle cx="500" cy="160" r="32" fill="#ffffff" opacity="0.9"/>
+        <path d="M465 240 C465 200, 535 200, 535 240 Z" fill="#ffffff" opacity="0.9"/>
+        <text x="500" y="290" font-family="Arial, sans-serif" font-size="11" fill="#002244" text-anchor="middle" font-weight="bold">FOTO KTP ASLI</text>
+      </svg>`;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    function initMockDataIfEmpty() {
+      const existing = localStorage.getItem(STORAGE_KEY);
+      if (!existing || JSON.parse(existing).length === 0) {
+        const now = Date.now();
+        // Seed realistic submissions:
+        // Item 1: created 8.5 minutes ago with status "waiting" -> triggers 7-minute warning banner!
+        // Item 2: created 4 minutes ago with status "pending"
+        // Item 3: created 2 hours ago with status "done"
+        const initialData = [
+          {
+            id: 'SF-7K8M9A',
+            createdAt: now - (8.5 * 60 * 1000), // 8.5 minutes ago (OVERDUE >7 mins)
+            nama: 'Budi Santoso',
+            email: 'budi.santoso94@gmail.com',
+            ttl: 'Jakarta, 12 Mei 1994',
+            nik: '3171011205940001',
+            nohp: '081288991234',
+            pendidikan: 'S1',
+            statusKawin: 'Menikah',
+            anak: 1,
+            pekerjaan: 'Supervisor IT',
+            lamaKerja: '3 Tahun',
+            gaji: '12.500.000',
+            npwp: '091234567890000',
+            alamat: 'Jl. Melati No. 18 RT 03/05, Kebayoran Baru, Jakarta Selatan. (Depan Indomaret Melati)',
+            ibu: 'Siti Aminah',
+            ktpImage: generateMockKtpSvg('Budi Santoso', '3171011205940001'),
+            status: 'waiting'
+          },
+          {
+            id: 'SF-4L2P1B',
+            createdAt: now - (4 * 60 * 1000), // 4 minutes ago
+            nama: 'Siti Nurhaliza',
+            email: 'siti.nurhaliza@yahoo.com',
+            ttl: 'Bandung, 20 Oktober 1997',
+            nik: '3273022010970003',
+            nohp: '085712345678',
+            pendidikan: 'D3',
+            statusKawin: 'Belum Menikah',
+            anak: 0,
+            pekerjaan: 'Staff Akuntansi',
+            lamaKerja: '2 Tahun',
+            gaji: '6.800.000',
+            npwp: '',
+            alamat: 'Jl. Dago Asri No. 4, Coblong, Bandung. (Pagar putih samping Apotek)',
+            ibu: 'Rukmini',
+            ktpImage: generateMockKtpSvg('Siti Nurhaliza', '3273022010970003'),
+            status: 'pending'
+          },
+          {
+            id: 'SF-1D9X8C',
+            createdAt: now - (120 * 60 * 1000), // 2 hours ago
+            nama: 'Andi Pratama',
+            email: 'andi.pratama@outlook.com',
+            ttl: 'Surabaya, 14 Februari 1992',
+            nik: '3578011402920005',
+            nohp: '081398765432',
+            pendidikan: 'S1',
+            statusKawin: 'Menikah',
+            anak: 2,
+            pekerjaan: 'Wirausaha Kuliner',
+            lamaKerja: '5 Tahun',
+            gaji: '18.000.000',
+            npwp: '123456789012345',
+            alamat: 'Jl. Rungkut Madya No. 22, Surabaya. (Sebelah Bank BCA Rungkut)',
+            ibu: 'Kartini',
+            ktpImage: generateMockKtpSvg('Andi Pratama', '3578011402920005'),
+            status: 'done'
+          }
+        ];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
+      }
+    }
+
+    function getSubmissions() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        console.error('Error reading localStorage', e);
+        return [];
+      }
+    }
+
+    function saveSubmissions(list) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      } catch (e) {
+        console.error('Error saving localStorage', e);
+      }
+    }
+
+    /* =======================================================================
+       VIEW SWITCHER (Registrasi vs Form Cicilan vs Laman Admin)
+       ======================================================================= */
+    function toggleAdminFromHeader() {
+      if (state.currentView === 'admin') {
+        if (state.registeredPhone && state.registeredPhone !== ADMIN_MASTER_PHONE) {
+          switchView('user');
+        } else {
+          switchView('register');
+        }
+      } else {
+        switchView('admin');
+      }
+    }
+
+    function switchView(target) {
+      state.currentView = target;
+      const registerView = document.getElementById('view-register');
+      const userView = document.getElementById('view-user');
+      const adminView = document.getElementById('view-admin');
+      const headerBtnText = document.getElementById('header-admin-btn-text');
+      const headerToggleBtn = document.getElementById('btn-header-admin-toggle');
+
+      if (target === 'register') {
+        if (registerView) registerView.classList.remove('hidden');
+        if (userView) userView.classList.add('hidden');
+        if (adminView) adminView.classList.add('hidden');
+        if (headerBtnText) headerBtnText.textContent = 'Portal Admin';
+        if (headerToggleBtn) {
+          headerToggleBtn.className = 'px-3 sm:px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-xs sm:text-sm shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer shrink-0 border border-white/20';
+        }
+        
+        // Populate existing phone if available
+        const input = document.getElementById('reg-phone-input');
+        if (input && state.registeredPhone) {
+          input.value = state.registeredPhone;
+        }
+      } else if (target === 'user') {
+        if (registerView) registerView.classList.add('hidden');
+        if (userView) userView.classList.remove('hidden');
+        if (adminView) adminView.classList.add('hidden');
+        if (headerBtnText) headerBtnText.textContent = 'Portal Admin';
+        if (headerToggleBtn) {
+          headerToggleBtn.className = 'px-3 sm:px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-xs sm:text-sm shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer shrink-0 border border-white/20';
+        }
+
+        const phoneBadge = document.getElementById('form-header-phone-badge');
+        if (phoneBadge) {
+          phoneBadge.textContent = state.registeredPhone || 'Belum Terdaftar';
+        }
+        const nohpInput = document.getElementById('input-nohp');
+        if (nohpInput && state.registeredPhone) {
+          nohpInput.value = state.registeredPhone;
+        }
+      } else if (target === 'admin') {
+        if (registerView) registerView.classList.add('hidden');
+        if (userView) userView.classList.add('hidden');
+        if (adminView) adminView.classList.remove('hidden');
+        if (headerBtnText) headerBtnText.textContent = '← Pengajuan';
+        if (headerToggleBtn) {
+          headerToggleBtn.className = 'px-3 sm:px-4 py-2 rounded-xl bg-white text-[#0381FE] font-bold text-xs sm:text-sm shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer shrink-0 border border-white';
+        }
+
+        // Refresh admin statistics and tables
+        renderAdminDashboard();
+        checkOverdueTimers();
+      }
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* =======================================================================
+       TAHAP 1: REGISTRASI NOMOR HP, KONFIRMASI & ADMIN AUTH
+       ======================================================================= */
+    function checkInitialPhoneRegistration() {
+      const activeAdmin = localStorage.getItem(ADMIN_AUTH_KEY);
+      if (activeAdmin === ADMIN_MASTER_PHONE) {
+        state.isAdmin = true;
+        state.registeredPhone = ADMIN_MASTER_PHONE;
+        updateAdminProfileHeader(true);
+        switchView('admin');
+        return;
+      }
+
+      const savedPhone = localStorage.getItem(CURRENT_USER_PHONE_KEY);
+      if (savedPhone) {
+        if (savedPhone === ADMIN_MASTER_PHONE) {
+          loginAdminMaster(false);
+          return;
+        }
+        state.registeredPhone = savedPhone;
+        const nohpInput = document.getElementById('input-nohp');
+        if (nohpInput) nohpInput.value = savedPhone;
+        
+        const regInput = document.getElementById('reg-phone-input');
+        if (regInput) regInput.value = savedPhone;
+      }
+
+      // Default first screen is always the Register Page
+      switchView('register');
+    }
+
+    function updateAdminProfileHeader(isActive) {
+      const pill = document.getElementById('admin-profile-pill');
+      const nameEl = document.getElementById('header-admin-name');
+      const subEl = document.getElementById('header-admin-sub');
+      const avatarEl = document.getElementById('header-admin-avatar');
+
+      if (!pill) return;
+
+      if (isActive) {
+        pill.classList.remove('hidden');
+        if (nameEl) nameEl.textContent = 'Admin (571617)';
+        if (subEl) subEl.textContent = 'Otoritas Penuh';
+        if (avatarEl) {
+          avatarEl.className = 'w-7 h-7 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center text-xs font-black shadow-xs flex-shrink-0';
+          avatarEl.textContent = '👑';
+        }
+      } else {
+        if (nameEl) nameEl.textContent = 'Petugas: Verifikasi';
+        if (subEl) subEl.textContent = 'Akses Sistem';
+        if (avatarEl) {
+          avatarEl.className = 'w-7 h-7 rounded-full bg-white text-[#0381FE] flex items-center justify-center text-xs font-black shadow-xs flex-shrink-0';
+          avatarEl.textContent = 'SF';
+        }
+      }
+    }
+
+    function fillAdminPhone() {
+      const input = document.getElementById('reg-phone-input');
+      if (input) {
+        input.value = ADMIN_MASTER_PHONE;
+        handlePhoneRegSubmit(new Event('submit'));
+      }
+    }
+
+    function loginAdminMaster(notify = true) {
+      state.isAdmin = true;
+      state.registeredPhone = ADMIN_MASTER_PHONE;
+      localStorage.setItem(ADMIN_AUTH_KEY, ADMIN_MASTER_PHONE);
+      localStorage.setItem(CURRENT_USER_PHONE_KEY, ADMIN_MASTER_PHONE);
+
+      updateAdminProfileHeader(true);
+      closeAllPhoneModals();
+      switchView('admin');
+
+      if (notify) {
+        showToast(
+          'Akses Admin Terverifikasi', 
+          'Nomor 571617 dikenali sebagai Akun Administrator Utama. Mengarahkan ke Laman Admin...', 
+          'success'
+        );
+        playNotificationBeep();
+      }
+    }
+
+    function logoutAdmin() {
+      localStorage.removeItem(ADMIN_AUTH_KEY);
+      state.isAdmin = false;
+      state.registeredPhone = '';
+      localStorage.removeItem(CURRENT_USER_PHONE_KEY);
+      
+      updateAdminProfileHeader(false);
+      switchView('register');
+      
+      showToast('Sesi Berakhir', 'Anda telah keluar dari akun Administrator 571617.', 'info');
+    }
+
+    function openPhoneRegModal(isEditing = false) {
+      switchView('register');
+      const input = document.getElementById('reg-phone-input');
+      const errorMsg = document.getElementById('error-reg-phone');
+      if (errorMsg) errorMsg.classList.add('hidden');
+      if (input) {
+        if (isEditing && state.registeredPhone) {
+          input.value = state.registeredPhone;
+        }
+        input.focus();
+      }
+    }
+
+    function closeAllPhoneModals() {
+      const confirmModal = document.getElementById('modal-phone-confirm');
+      if (confirmModal) confirmModal.classList.add('hidden');
+    }
+
+    function handlePhoneRegSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const input = document.getElementById('reg-phone-input');
+      const errorMsg = document.getElementById('error-reg-phone');
+      if (!input) return;
+      const val = input.value.trim();
+
+      // KHUSUS ADMIN UTAMA: Jika nomor 571617 dimasukkan
+      if (val === ADMIN_MASTER_PHONE) {
+        if (errorMsg) errorMsg.classList.add('hidden');
+        input.classList.remove('border-red-500');
+        loginAdminMaster(true);
+        return;
+      }
+
+      // Validasi: hanya angka, 8-14 digit
+      const phoneRegex = /^[0-9]{8,14}$/;
+      if (!phoneRegex.test(val)) {
+        if (errorMsg) errorMsg.classList.remove('hidden');
+        input.classList.add('border-red-500');
+        input.focus();
+        return;
+      }
+
+      if (errorMsg) errorMsg.classList.add('hidden');
+      input.classList.remove('border-red-500');
+
+      // Buka Modal Konfirmasi
+      state.tempPhone = val;
+      
+      const confirmModal = document.getElementById('modal-phone-confirm');
+      const displayEl = document.getElementById('confirm-phone-display');
+      if (displayEl) displayEl.textContent = val;
+      
+      // Reset checkbox & disabled button
+      const chk = document.getElementById('checkbox-confirm-phone');
+      if (chk) chk.checked = false;
+      const proceedBtn = document.getElementById('btn-proceed-to-form');
+      if (proceedBtn) {
+        proceedBtn.disabled = true;
+        proceedBtn.className = 'w-full sm:w-1/2 py-3 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs sm:text-sm transition cursor-not-allowed shadow-none';
+      }
+
+      if (confirmModal) confirmModal.classList.remove('hidden');
+    }
+
+    function handleConfirmCheckboxToggle(e) {
+      const isChecked = e.target.checked;
+      const proceedBtn = document.getElementById('btn-proceed-to-form');
+      if (!proceedBtn) return;
+      proceedBtn.disabled = !isChecked;
+      if (isChecked) {
+        proceedBtn.className = 'w-full sm:w-1/2 py-3 rounded-xl bg-[#0381FE] hover:bg-[#0062cc] text-white font-bold text-xs sm:text-sm shadow-md transition transform active:scale-95 cursor-pointer';
+      } else {
+        proceedBtn.className = 'w-full sm:w-1/2 py-3 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs sm:text-sm transition cursor-not-allowed shadow-none';
+      }
+    }
+
+    function backToPhoneEdit() {
+      const confirmModal = document.getElementById('modal-phone-confirm');
+      if (confirmModal) confirmModal.classList.add('hidden');
+      switchView('register');
+      const input = document.getElementById('reg-phone-input');
+      if (input) input.focus();
+    }
+
+    function proceedToApplicationForm() {
+      const chk = document.getElementById('checkbox-confirm-phone');
+      if (chk && !chk.checked) return;
+
+      state.registeredPhone = state.tempPhone;
+      localStorage.setItem(CURRENT_USER_PHONE_KEY, state.registeredPhone);
+
+      // Isi otomatis input-nohp dan set disabled
+      const phoneInput = document.getElementById('input-nohp');
+      if (phoneInput) phoneInput.value = state.registeredPhone;
+
+      closeAllPhoneModals();
+
+      // Alihkan ke form cicilan
+      switchView('user');
+
+      // Pastikan form user terlihat
+      const formSec = document.getElementById('user-form-section');
+      if (formSec) formSec.classList.remove('hidden');
+      const successSec = document.getElementById('user-success-section');
+      if (successSec) successSec.classList.add('hidden');
+
+      showToast('Registrasi HP Berhasil', `Nomor ${state.registeredPhone} berhasil diverifikasi. Silakan lengkapi formulir cicilan.`, 'success');
+      playNotificationBeep();
+    }
+
+    /* =======================================================================
+       TAHAP 2: FORM PENGAJUAN DATA VALIDATION & KTP UPLOAD
+       ======================================================================= */
+    // Live rupiah formatting on salary
+    const gajiInput = document.getElementById('input-gaji');
+    gajiInput.addEventListener('input', function(e) {
+      let raw = e.target.value.replace(/\D/g, '');
+      if (raw) {
+        e.target.value = new Intl.NumberFormat('id-ID').format(raw);
+      } else {
+        e.target.value = '';
+      }
+    });
+
+    // KTP File Upload & Preview Handler
+    function handleKtpFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast('Format Salah', 'File yang diunggah harus berupa gambar (JPG, PNG, WEBP).', 'error');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Ukuran Terlalu Besar', 'Maksimal ukuran foto KTP adalah 5MB.', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        state.uploadedKtpBase64 = e.target.result;
+        document.getElementById('ktp-preview-img').src = state.uploadedKtpBase64;
+        document.getElementById('ktp-file-name').textContent = file.name;
+        document.getElementById('ktp-empty-state').classList.add('hidden');
+        document.getElementById('ktp-preview-state').classList.remove('hidden');
+        document.getElementById('error-ktp').classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeKtpImage(event) {
+      if (event) event.stopPropagation();
+      state.uploadedKtpBase64 = '';
+      document.getElementById('input-ktp-file').value = '';
+      document.getElementById('ktp-preview-img').src = '';
+      document.getElementById('ktp-empty-state').classList.remove('hidden');
+      document.getElementById('ktp-preview-state').classList.add('hidden');
+    }
+
+    // Full Form Validation & Submission
+    const loanForm = document.getElementById('loan-application-form');
+    loanForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      let isValid = true;
+      let firstErrorElement = null;
+
+      function setError(inputId, errorId, show, message) {
+        const inp = document.getElementById(inputId);
+        const err = document.getElementById(errorId);
+        if (show) {
+          isValid = false;
+          if (message && err) err.textContent = message;
+          if (err) err.classList.remove('hidden');
+          if (inp) inp.classList.add('border-red-500', 'bg-red-50/20');
+          if (!firstErrorElement && inp) firstErrorElement = inp;
+        } else {
+          if (err) err.classList.add('hidden');
+          if (inp) inp.classList.remove('border-red-500', 'bg-red-50/20');
+        }
+      }
+
+      // 1. Nama Lengkap (Wajib, min 3 karakter)
+      const namaVal = document.getElementById('input-nama').value.trim();
+      setError('input-nama', 'error-nama', namaVal.length < 3);
+
+      // 2. Email (Format valid)
+      const emailVal = document.getElementById('input-email').value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      setError('input-email', 'error-email', !emailRegex.test(emailVal));
+
+      // 3. Tempat, Tanggal Lahir (Wajib)
+      const ttlVal = document.getElementById('input-ttl').value.trim();
+      setError('input-ttl', 'error-ttl', ttlVal.length < 3);
+
+      // 4. NIK (Wajib tepat 16 digit angka)
+      const nikVal = document.getElementById('input-nik').value.trim();
+      const nikRegex = /^\d{16}$/;
+      setError('input-nik', 'error-nik', !nikRegex.test(nikVal));
+
+      // 5. No HP (Must exist from Tahap 1)
+      if (!state.registeredPhone) {
+        openPhoneRegModal(false);
+        return;
+      }
+
+      // 6. Pendidikan (Dropdown)
+      const pendidikanVal = document.getElementById('input-pendidikan').value;
+      setError('input-pendidikan', 'error-pendidikan', !pendidikanVal);
+
+      // 7. Status Perkawinan (Dropdown)
+      const statusKawinVal = document.getElementById('input-status-kawin').value;
+      setError('input-status-kawin', 'error-status-kawin', !statusKawinVal);
+
+      // 8. Jumlah Anak (Angka >= 0)
+      const anakVal = document.getElementById('input-anak').value;
+      setError('input-anak', 'error-anak', anakVal === '' || parseInt(anakVal, 10) < 0 || isNaN(parseInt(anakVal, 10)));
+
+      // 9. Pekerjaan (Wajib)
+      const pekerjaanVal = document.getElementById('input-pekerjaan').value.trim();
+      setError('input-pekerjaan', 'error-pekerjaan', pekerjaanVal.length < 2);
+
+      // 10. Lama Bekerja (Wajib)
+      const lamaKerjaVal = document.getElementById('input-lama-kerja').value.trim();
+      setError('input-lama-kerja', 'error-lama-kerja', lamaKerjaVal.length < 2);
+
+      // 11. Penghasilan/Bulan (Wajib)
+      const gajiVal = document.getElementById('input-gaji').value.trim();
+      const cleanGaji = parseInt(gajiVal.replace(/\D/g, ''), 10);
+      setError('input-gaji', 'error-gaji', !gajiVal || isNaN(cleanGaji) || cleanGaji <= 0);
+
+      // 12. No NPWP (Opsional, jika diisi harus 15-16 digit angka)
+      const npwpVal = document.getElementById('input-npwp').value.trim();
+      if (npwpVal.length > 0) {
+        const npwpRegex = /^\d{15,16}$/;
+        setError('input-npwp', 'error-npwp', !npwpRegex.test(npwpVal));
+      } else {
+        setError('input-npwp', 'error-npwp', false);
+      }
+
+      // 13. Patokan Rumah Lengkap / Alamat (Wajib)
+      const alamatVal = document.getElementById('input-alamat').value.trim();
+      setError('input-alamat', 'error-alamat', alamatVal.length < 10);
+
+      // 14. Nama Ibu Kandung (Wajib)
+      const ibuVal = document.getElementById('input-ibu').value.trim();
+      setError('input-ibu', 'error-ibu', ibuVal.length < 3);
+
+      // 15. Upload Foto KTP (Wajib)
+      if (!state.uploadedKtpBase64) {
+        document.getElementById('error-ktp').classList.remove('hidden');
+        isValid = false;
+        if (!firstErrorElement) firstErrorElement = document.getElementById('ktp-dropzone');
+      } else {
+        document.getElementById('error-ktp').classList.add('hidden');
+      }
+
+      if (!isValid) {
+        if (firstErrorElement) {
+          firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        showToast('Validasi Gagal', 'Mohon lengkapi formulir sesuai format yang diminta.', 'error');
+        return;
+      }
+
+      // Valid! Process submission (Tahap 3)
+      submitLoanApplication({
+        nama: namaVal,
+        email: emailVal,
+        ttl: ttlVal,
+        nik: nikVal,
+        nohp: state.registeredPhone,
+        pendidikan: pendidikanVal,
+        statusKawin: statusKawinVal,
+        anak: parseInt(anakVal, 10),
+        pekerjaan: pekerjaanVal,
+        lamaKerja: lamaKerjaVal,
+        gaji: gajiVal,
+        npwp: npwpVal,
+        alamat: alamatVal,
+        ibu: ibuVal,
+        ktpImage: state.uploadedKtpBase64
+      });
+    });
+
+    /* =======================================================================
+       TAHAP 3: SUBMIT & HALAMAN SUKSES
+       ======================================================================= */
+    function submitLoanApplication(formData) {
+      const now = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const newSubmission = {
+        id: `SF-${randomSuffix}`,
+        createdAt: now,
+        status: 'waiting', // Status awal waiting
+        ...formData
+      };
+
+      // Simpan ke localStorage
+      const list = getSubmissions();
+      list.unshift(newSubmission);
+      saveSubmissions(list);
+
+      // Notifikasi toast & audio ping
+      triggerNewSubmissionAlert(newSubmission.nama);
+
+      // Sembunyikan form dan tampilkan Halaman Sukses
+      document.getElementById('user-form-section').classList.add('hidden');
+      const successSection = document.getElementById('user-success-section');
+      successSection.classList.remove('hidden');
+
+      // Populate data sukses
+      document.getElementById('success-submission-id').textContent = newSubmission.id;
+      document.getElementById('success-nama').textContent = newSubmission.nama;
+      document.getElementById('success-nohp').textContent = newSubmission.nohp;
+      document.getElementById('success-time').textContent = new Date(now).toLocaleString('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+
+      // Update CTA WhatsApp link text with details
+      const encodedMsg = encodeURIComponent(
+        `Halo Admin Samsung Finance, saya sudah mengisi form pengajuan cicilan.\n\n*ID Pengajuan:* ${newSubmission.id}\n*Nama:* ${newSubmission.nama}\n*No HP:* ${newSubmission.nohp}\n*NIK:* ${newSubmission.nik}\n\nMohon segera diproses dan diverifikasi. Terima kasih!`
+      );
+      document.getElementById('cta-whatsapp-link').href = `https://wa.me/6281234567890?text=${encodedMsg}`;
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Refresh admin tables if rendered in background
+      renderAdminDashboard();
+      updateAdminBadge();
+    }
+
+    function resetUserForm(clearPhone = false) {
+      loanForm.reset();
+      removeKtpImage();
+      if (clearPhone) {
+        state.registeredPhone = '';
+        localStorage.removeItem(CURRENT_USER_PHONE_KEY);
+        openPhoneRegModal(false);
+      } else if (state.registeredPhone) {
+        document.getElementById('input-nohp').value = state.registeredPhone;
+      }
+    }
+
+    function startNewUserSubmission() {
+      resetUserForm(true);
+      document.getElementById('user-form-section').classList.remove('hidden');
+      document.getElementById('user-success-section').classList.add('hidden');
+      openPhoneRegModal(false);
+    }
+
+    /* =======================================================================
+       LAMAN ADMIN: DASHBOARD, STATS & TABEL PENGAJUAN
+       ======================================================================= */
+    function renderAdminDashboard() {
+      const submissions = getSubmissions();
+      
+      // Calculate Stats
+      const total = submissions.length;
+      const waiting = submissions.filter(s => s.status === 'waiting').length;
+      const pending = submissions.filter(s => s.status === 'pending').length;
+      const done = submissions.filter(s => s.status === 'done').length;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-waiting').textContent = waiting;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-done').textContent = done;
+
+      document.getElementById('filter-count-all').textContent = total;
+      document.getElementById('filter-count-waiting').textContent = waiting;
+      document.getElementById('filter-count-pending').textContent = pending;
+      document.getElementById('filter-count-done').textContent = done;
+
+      updateAdminBadge();
+
+      // Apply Filters & Search
+      let filtered = submissions;
+      if (state.adminFilterStatus !== 'all') {
+        filtered = filtered.filter(s => s.status === state.adminFilterStatus);
+      }
+
+      if (state.adminSearchQuery) {
+        const q = state.adminSearchQuery.toLowerCase();
+        filtered = filtered.filter(s => 
+          (s.nama && s.nama.toLowerCase().includes(q)) ||
+          (s.nohp && s.nohp.includes(q)) ||
+          (s.nik && s.nik.includes(q)) ||
+          (s.id && s.id.toLowerCase().includes(q)) ||
+          (s.email && s.email.toLowerCase().includes(q))
+        );
+      }
+
+      const tbody = document.getElementById('admin-submissions-tbody');
+      const cardsContainer = document.getElementById('admin-cards-container');
+      const emptyState = document.getElementById('admin-empty-state');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        if (cardsContainer) cardsContainer.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      const now = Date.now();
+
+      // Render 1: Tabel Desktop / Full
+      tbody.innerHTML = filtered.map(item => {
+        const elapsedMs = now - item.createdAt;
+        const isOverdue = (item.status === 'waiting' || item.status === 'pending') && elapsedMs >= OVERDUE_THRESHOLD_MS;
+        const elapsedMinutes = Math.floor(elapsedMs / 60000);
+        
+        const dateStr = new Date(item.createdAt).toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+        const timeStr = new Date(item.createdAt).toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const cleanPhone = (item.nohp || '').replace(/\D/g, '').replace(/^0/, '62');
+
+        // Highlight row with warning if overdue
+        const rowBg = isOverdue ? 'bg-red-50/70 hover:bg-red-100/60' : 'hover:bg-slate-50/80';
+
+        return `
+          <tr class="transition ${rowBg}">
+            <!-- ID & Tanggal -->
+            <td class="py-3 px-4 font-mono">
+              <div class="font-bold text-[#0381FE]">${escapeHtml(item.id)}</div>
+              <div class="text-[11px] text-slate-500 whitespace-nowrap">${dateStr} ${timeStr}</div>
+              ${isOverdue ? `<span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white animate-pulse">⏰ ${elapsedMinutes} Menit!</span>` : `<span class="text-[10px] text-slate-400">${elapsedMinutes} mnt lalu</span>`}
+            </td>
+
+            <!-- Nama & Kontak -->
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-900 text-sm">${escapeHtml(item.nama)}</div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <a href="tel:${escapeHtml(item.nohp)}" class="text-slate-700 font-medium hover:text-[#0381FE]">${escapeHtml(item.nohp)}</a>
+                <a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener noreferrer" class="px-1.5 py-0.5 rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] font-bold transition">WA</a>
+              </div>
+              <div class="text-slate-500 text-[11px] truncate max-w-[170px] mt-0.5" title="${escapeHtml(item.email)}">${escapeHtml(item.email)}</div>
+            </td>
+
+            <!-- NIK & TTL -->
+            <td class="py-3 px-4">
+              <div class="font-mono font-bold text-slate-900 text-xs">${escapeHtml(item.nik)}</div>
+              <div class="text-slate-600 text-[11px] mt-0.5">${escapeHtml(item.ttl)}</div>
+            </td>
+
+            <!-- Pekerjaan & Gaji -->
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-800">${escapeHtml(item.pekerjaan)}</div>
+              <div class="text-slate-500 text-[11px]">Masa: ${escapeHtml(item.lamaKerja)}</div>
+              <div class="text-emerald-700 font-extrabold text-xs mt-0.5">Rp ${escapeHtml(item.gaji)}</div>
+            </td>
+
+            <!-- Pendidikan & Keluarga -->
+            <td class="py-3 px-4">
+              <div><span class="font-semibold text-slate-700">Pendidikan:</span> ${escapeHtml(item.pendidikan)}</div>
+              <div><span class="font-semibold text-slate-700">Status:</span> ${escapeHtml(item.statusKawin)}</div>
+              <div class="text-slate-500 text-[11px]">Tanggungan: ${item.anak} Anak</div>
+            </td>
+
+            <!-- Ibu Kandung & NPWP -->
+            <td class="py-3 px-4">
+              <div class="font-semibold text-slate-800">${escapeHtml(item.ibu)}</div>
+              <div class="font-mono text-slate-500 text-[11px] mt-0.5">NPWP: ${item.npwp ? escapeHtml(item.npwp) : '<span class="italic text-slate-400">-</span>'}</div>
+            </td>
+
+            <!-- Alamat & Patokan -->
+            <td class="py-3 px-4 max-w-xs">
+              <p class="text-slate-700 text-xs leading-relaxed" title="${escapeHtml(item.alamat)}">${escapeHtml(item.alamat)}</p>
+            </td>
+
+            <!-- Foto KTP Thumbnail & Trigger -->
+            <td class="py-3 px-4 text-center">
+              ${item.ktpImage ? `
+                <div class="flex flex-col items-center gap-1">
+                  <img 
+                    src="${item.ktpImage}" 
+                    alt="KTP Thumbnail" 
+                    onclick="openKtpModal('${item.id}')"
+                    class="w-16 h-10 object-cover rounded-md border border-slate-300 shadow-2xs hover:scale-105 transition cursor-pointer"
+                    title="Klik untuk melihat foto e-KTP ukuran penuh"
+                  />
+                  <button 
+                    type="button" 
+                    onclick="openKtpModal('${item.id}')"
+                    class="text-[10px] font-bold text-[#0381FE] hover:underline cursor-pointer"
+                  >
+                    Perbesar
+                  </button>
+                </div>
+              ` : '<span class="text-slate-400 italic text-[11px]">Belum ada</span>'}
+            </td>
+
+            <!-- Status Dropdown (Admin editable) -->
+            <td class="py-3 px-4">
+              <select 
+                onchange="updateSubmissionStatus('${item.id}', this.value)"
+                class="px-2.5 py-1.5 rounded-xl border text-xs font-bold focus:outline-none transition ${getStatusSelectClasses(item.status)}"
+              >
+                <option value="waiting" ${item.status === 'waiting' ? 'selected' : ''}>🟡 Waiting</option>
+                <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>🔵 Pending</option>
+                <option value="done" ${item.status === 'done' ? 'selected' : ''}>🟢 Done</option>
+              </select>
+            </td>
+
+            <!-- Aksi Lengkap -->
+            <td class="py-3 px-4 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button 
+                  type="button" 
+                  onclick="openDetailModal('${item.id}')"
+                  class="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#0381FE] font-bold text-xs border border-blue-200 transition cursor-pointer shadow-2xs flex items-center gap-1"
+                  title="Lihat seluruh data pemohon dalam satu layar"
+                >
+                  <span>📋</span>
+                  <span>Detail</span>
+                </button>
+                <button 
+                  type="button" 
+                  onclick="deleteSubmission('${item.id}')"
+                  class="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition cursor-pointer"
+                  title="Hapus Pengajuan"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Render 2: Kartu Mobile Elegan & Super Lengkap (Bebas Cacat UI di Smartphone)
+      if (cardsContainer) {
+        cardsContainer.innerHTML = filtered.map(item => {
+          const elapsedMs = now - item.createdAt;
+          const isOverdue = (item.status === 'waiting' || item.status === 'pending') && elapsedMs >= OVERDUE_THRESHOLD_MS;
+          const elapsedMinutes = Math.floor(elapsedMs / 60000);
+          
+          const dateStr = new Date(item.createdAt).toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+          });
+          const timeStr = new Date(item.createdAt).toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          const cleanPhone = (item.nohp || '').replace(/\D/g, '').replace(/^0/, '62');
+
+          return `
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border ${isOverdue ? 'border-red-300 ring-2 ring-red-100' : 'border-slate-200/90'} shadow-sm space-y-4 transition">
+              
+              <!-- Top Row: ID, Time, & Status Selector -->
+              <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-mono font-bold text-sm text-[#0381FE]">${escapeHtml(item.id)}</span>
+                    ${isOverdue ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white animate-pulse">⏰ Lewat ${elapsedMinutes} Mnt!</span>` : `<span class="text-[10px] text-slate-400 font-medium">${elapsedMinutes} mnt lalu</span>`}
+                  </div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">${dateStr} • ${timeStr} WIB</div>
+                </div>
+                
+                <div>
+                  <select 
+                    onchange="updateSubmissionStatus('${item.id}', this.value)"
+                    class="px-2.5 py-1.5 rounded-xl border text-xs font-bold focus:outline-none transition ${getStatusSelectClasses(item.status)}"
+                  >
+                    <option value="waiting" ${item.status === 'waiting' ? 'selected' : ''}>🟡 Waiting</option>
+                    <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>🔵 Pending</option>
+                    <option value="done" ${item.status === 'done' ? 'selected' : ''}>🟢 Done</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Customer Info & Quick Action Buttons -->
+              <div class="space-y-2">
+                <div class="flex items-baseline justify-between gap-2">
+                  <h4 class="text-base font-extrabold text-slate-900 leading-snug">${escapeHtml(item.nama)}</h4>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-2">
+                  <a 
+                    href="https://wa.me/${cleanPhone}" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs border border-emerald-200 transition shadow-2xs"
+                  >
+                    <span>💬</span>
+                    <span>Chat WA</span>
+                  </a>
+                  <a 
+                    href="tel:${escapeHtml(item.nohp)}" 
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-[#0381FE] hover:bg-blue-100 font-bold text-xs border border-blue-200 transition shadow-2xs"
+                  >
+                    <span>📞</span>
+                    <span>${escapeHtml(item.nohp)}</span>
+                  </a>
+                  <a 
+                    href="mailto:${escapeHtml(item.email)}" 
+                    class="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 hover:underline truncate max-w-[200px]"
+                    title="${escapeHtml(item.email)}"
+                  >
+                    <span>✉️</span>
+                    <span class="truncate">${escapeHtml(item.email)}</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Data Details Comprehensive Grid -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs bg-slate-50/90 p-3.5 rounded-xl border border-slate-200/80">
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">NIK</span>
+                  <span class="font-mono font-bold text-slate-900 text-xs sm:text-sm">${escapeHtml(item.nik)}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Tempat, Tgl Lahir</span>
+                  <span class="font-semibold text-slate-800 text-xs">${escapeHtml(item.ttl)}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Ibu Kandung</span>
+                  <span class="font-bold text-slate-800 text-xs">${escapeHtml(item.ibu)}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Penghasilan / Bln</span>
+                  <span class="font-extrabold text-emerald-700 text-xs sm:text-sm">Rp ${escapeHtml(item.gaji)}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Pekerjaan</span>
+                  <span class="font-semibold text-slate-800 text-xs">${escapeHtml(item.pekerjaan)}</span>
+                  <span class="text-slate-500 text-[10px] block">Masa: ${escapeHtml(item.lamaKerja)}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">No. NPWP</span>
+                  <span class="font-mono text-slate-700 text-xs">${item.npwp ? escapeHtml(item.npwp) : '<span class="italic text-slate-400">-</span>'}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Pendidikan</span>
+                  <span class="font-semibold text-slate-800 text-xs">${escapeHtml(item.pendidikan)}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Status Kawin</span>
+                  <span class="font-semibold text-slate-800 text-xs">${escapeHtml(item.statusKawin)}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Tanggungan</span>
+                  <span class="font-semibold text-slate-800 text-xs">${item.anak} Anak</span>
+                </div>
+              </div>
+
+              <!-- Alamat & Patokan Lengkap -->
+              <div class="text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-200">
+                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Alamat Domisili & Patokan Rumah:</span>
+                <p class="leading-relaxed font-medium text-slate-800">${escapeHtml(item.alamat)}</p>
+              </div>
+
+              <!-- Foto Asli KTP Thumbnail Preview -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Foto e-KTP Pemohon:</span>
+                  ${item.ktpImage ? `
+                    <button 
+                      type="button" 
+                      onclick="openKtpModal('${item.id}')"
+                      class="text-xs font-bold text-[#0381FE] hover:underline cursor-pointer"
+                    >
+                      🔍 Perbesar Foto
+                    </button>
+                  ` : ''}
+                </div>
+
+                ${item.ktpImage ? `
+                  <div 
+                    onclick="openKtpModal('${item.id}')" 
+                    class="bg-slate-50 rounded-xl p-2 border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition"
+                  >
+                    <img 
+                      src="${item.ktpImage}" 
+                      alt="Preview KTP" 
+                      class="max-h-36 w-auto object-contain rounded-lg shadow-xs"
+                    />
+                  </div>
+                ` : `
+                  <div class="p-3 bg-slate-50 rounded-xl text-center text-xs text-slate-400 italic border border-slate-200">
+                    Foto e-KTP belum diunggah oleh pemohon
+                  </div>
+                `}
+              </div>
+
+              <!-- Actions Bottom: Full Dossier & Delete -->
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                <button 
+                  type="button" 
+                  onclick="openDetailModal('${item.id}')"
+                  class="flex-1 py-2.5 px-4 rounded-xl bg-blue-50 text-[#0381FE] hover:bg-blue-100 font-bold text-xs border border-blue-200 transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>📋</span>
+                  <span>Buka Dossier Lengkap</span>
+                </button>
+                <button 
+                  type="button" 
+                  onclick="deleteSubmission('${item.id}')"
+                  class="py-2.5 px-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs border border-red-200 transition cursor-pointer"
+                  title="Hapus Data Pengajuan"
+                >
+                  <span>🗑️</span>
+                </button>
+              </div>
+
+            </div>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('admin-last-sync-time').textContent = `Diperbarui ${new Date().toLocaleTimeString('id-ID')}`;
+    }
+
+    /* =======================================================================
+       DETAIL MODAL & DOSSIER LOGIC
+       ======================================================================= */
+    let currentDetailSubmissionId = null;
+
+    function openDetailModal(id) {
+      const submissions = getSubmissions();
+      const item = submissions.find(s => s.id === id);
+      if (!item) return;
+
+      currentDetailSubmissionId = id;
+      const cleanPhone = (item.nohp || '').replace(/\D/g, '').replace(/^0/, '62');
+
+      document.getElementById('detail-modal-nama').textContent = item.nama;
+      document.getElementById('detail-modal-id').textContent = item.id;
+      document.getElementById('detail-modal-time').textContent = new Date(item.createdAt).toLocaleString('id-ID');
+
+      const statusBadge = document.getElementById('detail-modal-status-badge');
+      statusBadge.textContent = item.status.toUpperCase();
+      if (item.status === 'waiting') {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+      } else if (item.status === 'pending') {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800';
+      } else {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+      }
+
+      document.getElementById('detail-modal-status-select').value = item.status;
+      document.getElementById('detail-modal-btn-wa').href = `https://wa.me/${cleanPhone}`;
+      document.getElementById('detail-modal-btn-tel').href = `tel:${item.nohp}`;
+      document.getElementById('detail-modal-btn-mail').href = `mailto:${item.email}`;
+
+      document.getElementById('detail-d-nama').textContent = item.nama;
+      document.getElementById('detail-d-nik').textContent = item.nik;
+      document.getElementById('detail-d-ttl').textContent = item.ttl;
+      document.getElementById('detail-d-ibu').textContent = item.ibu;
+      document.getElementById('detail-d-nohp').textContent = item.nohp;
+      document.getElementById('detail-d-email').textContent = item.email;
+
+      document.getElementById('detail-d-pekerjaan').textContent = item.pekerjaan;
+      document.getElementById('detail-d-lama-kerja').textContent = item.lamaKerja;
+      document.getElementById('detail-d-gaji').textContent = `Rp ${item.gaji}`;
+      document.getElementById('detail-d-npwp').textContent = item.npwp || 'Tidak Ada (Opsional)';
+
+      document.getElementById('detail-d-pendidikan').textContent = item.pendidikan;
+      document.getElementById('detail-d-status-kawin').textContent = item.statusKawin;
+      document.getElementById('detail-d-anak').textContent = `${item.anak} Orang Anak`;
+
+      document.getElementById('detail-d-alamat').textContent = item.alamat;
+
+      const ktpImg = document.getElementById('detail-d-ktp-img');
+      const zoomBtn = document.getElementById('detail-modal-btn-zoom-ktp');
+      if (item.ktpImage) {
+        ktpImg.src = item.ktpImage;
+        ktpImg.classList.remove('hidden');
+        zoomBtn.onclick = () => openKtpModal(item.id);
+        zoomBtn.classList.remove('hidden');
+      } else {
+        ktpImg.classList.add('hidden');
+        zoomBtn.classList.add('hidden');
+      }
+
+      document.getElementById('detail-modal-btn-delete').onclick = () => {
+        deleteSubmission(item.id);
+      };
+
+      document.getElementById('modal-submission-detail').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('modal-submission-detail').classList.add('hidden');
+      currentDetailSubmissionId = null;
+    }
+
+    function handleDetailModalStatusChange(newStatus) {
+      if (!currentDetailSubmissionId) return;
+      updateSubmissionStatus(currentDetailSubmissionId, newStatus);
+      const statusBadge = document.getElementById('detail-modal-status-badge');
+      statusBadge.textContent = newStatus.toUpperCase();
+      if (newStatus === 'waiting') {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+      } else if (newStatus === 'pending') {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800';
+      } else {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+      }
+    }
+
+    function deleteSubmission(id) {
+      if (!confirm(`Hapus data pengajuan ${id}? Tindakan ini tidak dapat dibatalkan.`)) {
+        return;
+      }
+      const submissions = getSubmissions();
+      const updated = submissions.filter(s => s.id !== id);
+      saveSubmissions(updated);
+      renderAdminDashboard();
+      checkOverdueTimers();
+      updateAdminBadge();
+      closeDetailModal();
+      showToast('Pengajuan Dihapus', `Data ${id} telah dihapus dari sistem.`, 'info');
+    }
+
+    function setAdminViewMode(mode) {
+      state.adminViewMode = mode;
+      const tableContainer = document.getElementById('admin-table-container');
+      const cardsContainer = document.getElementById('admin-cards-container');
+      const btnTable = document.getElementById('btn-view-mode-table');
+      const btnCard = document.getElementById('btn-view-mode-card');
+      const scrollHint = document.getElementById('table-scroll-hint');
+
+      if (mode === 'card') {
+        if (tableContainer) tableContainer.classList.add('hidden');
+        if (cardsContainer) cardsContainer.classList.remove('hidden');
+        if (scrollHint) scrollHint.classList.add('hidden');
+        if (btnCard) btnCard.className = 'px-2.5 py-1 rounded-md transition bg-white text-[#0381FE] shadow-xs flex items-center gap-1 cursor-pointer';
+        if (btnTable) btnTable.className = 'px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer';
+      } else {
+        if (cardsContainer) cardsContainer.classList.add('hidden');
+        if (tableContainer) tableContainer.classList.remove('hidden');
+        if (scrollHint && window.innerWidth < 768) scrollHint.classList.remove('hidden');
+        if (btnTable) btnTable.className = 'px-2.5 py-1 rounded-md transition bg-white text-[#0381FE] shadow-xs flex items-center gap-1 cursor-pointer';
+        if (btnCard) btnCard.className = 'px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer';
+      }
+    }
+
+    function getStatusSelectClasses(status) {
+      if (status === 'waiting') {
+        return 'bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-1 rounded border-none outline-none cursor-pointer focus:ring-2 focus:ring-yellow-400';
+      } else if (status === 'pending') {
+        return 'bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded border-none outline-none cursor-pointer focus:ring-2 focus:ring-blue-400';
+      } else {
+        return 'bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded border-none outline-none cursor-pointer focus:ring-2 focus:ring-green-400';
+      }
+    }
+
+    function updateSubmissionStatus(id, newStatus) {
+      const submissions = getSubmissions();
+      const target = submissions.find(s => s.id === id);
+      if (target) {
+        target.status = newStatus;
+        saveSubmissions(submissions);
+        renderAdminDashboard();
+        checkOverdueTimers();
+        showToast('Status Diperbarui', `ID ${id} sekarang berstatus: ${newStatus.toUpperCase()}`, 'info');
+      }
+    }
+
+    function handleAdminSearch() {
+      state.adminSearchQuery = document.getElementById('admin-search-input').value.trim();
+      renderAdminDashboard();
+    }
+
+    function setAdminStatusFilter(status) {
+      state.adminFilterStatus = status;
+
+      const buttons = ['all', 'waiting', 'pending', 'done'];
+      buttons.forEach(b => {
+        const btn = document.getElementById(`filter-btn-${b}`);
+        if (b === status) {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0381FE] text-white shadow-sm transition';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition';
+        }
+      });
+
+      renderAdminDashboard();
+    }
+
+    function updateAdminBadge() {
+      const submissions = getSubmissions();
+      const waitingCount = submissions.filter(s => s.status === 'waiting').length;
+      const badge = document.getElementById('header-admin-badge');
+      if (waitingCount > 0) {
+        badge.textContent = waitingCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    /* =======================================================================
+       TIMER BERKALA (SetInterval 30s) & 7-MINUTE WARNING BANNER
+       ======================================================================= */
+    function checkOverdueTimers() {
+      const submissions = getSubmissions();
+      const now = Date.now();
+
+      // Periksa apakah ada data yang berstatus "waiting" ATAU "pending"
+      // yang selisih waktunya (Date.now() - createdAt) >= 7 menit (420.000 ms)
+      const overdueList = submissions.filter(s => 
+        (s.status === 'waiting' || s.status === 'pending') &&
+        (now - s.createdAt >= OVERDUE_THRESHOLD_MS)
+      );
+
+      const banner = document.getElementById('admin-timer-warning-banner');
+      const bannerText = document.getElementById('admin-warning-banner-text');
+
+      if (overdueList.length > 0) {
+        const names = overdueList.map(s => `"${s.nama}" (${Math.floor((now - s.createdAt)/60000)} mnt)`).join(', ');
+        bannerText.textContent = `⚠️ PERINGATAN: Pengajuan atas nama ${names} telah berada di status Waiting/Pending selama lebih dari 7 menit! Segera tindak lanjuti sebelum dibatalkan.`;
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function dismissWarningBanner() {
+      document.getElementById('admin-timer-warning-banner').classList.add('hidden');
+    }
+
+    // Test button: Add an overdue mock item to immediately inspect 7-minute warning banner
+    function addMockExpiredItem() {
+      const now = Date.now();
+      const randomId = 'SF-TEST' + Math.floor(Math.random() * 90 + 10);
+      const testItem = {
+        id: randomId,
+        createdAt: now - (7.5 * 60 * 1000), // 7.5 Menit lalu
+        nama: 'Dian Permata (Tes >7 Menit)',
+        email: 'dian.permata@test.com',
+        ttl: 'Surabaya, 05 Mei 1996',
+        nik: '3578010505960009',
+        nohp: '081299998888',
+        pendidikan: 'S1',
+        statusKawin: 'Belum Menikah',
+        anak: 0,
+        pekerjaan: 'Graphic Designer',
+        lamaKerja: '1 Tahun',
+        gaji: '8.500.000',
+        npwp: '123456789012345',
+        alamat: 'Jl. Pemuda No. 12, Surabaya (Samping Graha Pena)',
+        ibu: 'Endang',
+        ktpImage: generateMockKtpSvg('Dian Permata', '3578010505960009'),
+        status: 'waiting'
+      };
+
+      const list = getSubmissions();
+      list.unshift(testItem);
+      saveSubmissions(list);
+
+      renderAdminDashboard();
+      checkOverdueTimers();
+      showToast('Data Tes Ditambahkan', 'Data berstatus waiting >7 menit berhasil disisipkan untuk pengujian banner.', 'info');
+    }
+
+    function resetToDefaultMockData() {
+      localStorage.removeItem(STORAGE_KEY);
+      initMockDataIfEmpty();
+      renderAdminDashboard();
+      checkOverdueTimers();
+      showToast('Reset Berhasil', 'Data dikembalikan ke contoh default awal.', 'info');
+    }
+
+    /* =======================================================================
+       KTP PREVIEW MODAL
+       ======================================================================= */
+    function openKtpModal(submissionId) {
+      const submissions = getSubmissions();
+      const item = submissions.find(s => s.id === submissionId);
+      if (!item || !item.ktpImage) return;
+
+      document.getElementById('ktp-modal-subtitle').textContent = `Pemohon: ${item.nama} | NIK: ${item.nik}`;
+      document.getElementById('ktp-modal-image').src = item.ktpImage;
+      document.getElementById('modal-ktp-viewer').classList.remove('hidden');
+    }
+
+    function closeKtpModal() {
+      document.getElementById('modal-ktp-viewer').classList.add('hidden');
+    }
+
+    /* =======================================================================
+       TOAST NOTIFICATION & AUDIO SYNTHESIZER
+       ======================================================================= */
+    function showToast(title, message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto glass border border-blue-200 rounded-2xl shadow-xl shadow-blue-500/10 p-4 flex items-start space-x-3 transition-all transform translate-y-2 opacity-0 duration-200';
+      
+      let iconColor = 'text-[#0381FE] bg-blue-50';
+      let iconSvg = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+
+      if (type === 'success') {
+        iconColor = 'text-emerald-600 bg-emerald-50';
+        iconSvg = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`;
+      } else if (type === 'error') {
+        iconColor = 'text-red-600 bg-red-50';
+        iconSvg = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>`;
+      }
+
+      toast.innerHTML = `
+        <div class="p-2 rounded-xl ${iconColor} flex-shrink-0">${iconSvg}</div>
+        <div class="flex-grow min-w-0">
+          <p class="text-xs font-bold text-slate-800">${escapeHtml(title)}</p>
+          <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">${escapeHtml(message)}</p>
+        </div>
+      `;
+
+      container.appendChild(toast);
+
+      // Animate in
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      // Auto dismiss after 4 seconds
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-full');
+        setTimeout(() => toast.remove(), 250);
+      }, 4000);
+    }
+
+    function triggerNewSubmissionAlert(userName) {
+      showToast(
+        'Pengajuan Baru Masuk!',
+        `Pengajuan baru masuk dari ${userName}! Segera lakukan review di Laman Admin.`,
+        'success'
+      );
+      playNotificationBeep();
+    }
+
+    // Pleasant Web Audio API gentle notification chime
+    function playNotificationBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
+
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch (e) {
+        // Audio playback ignored if blocked by autoplay policy
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /* =======================================================================
+       INITIALIZATION ON PAGE LOAD & RESPONSIVE LISTENER
+       ======================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      initMockDataIfEmpty();
+      checkInitialPhoneRegistration();
+
+      // Auto-detect optimal admin view mode based on device screen width
+      if (window.innerWidth < 768) {
+        setAdminViewMode('card');
+      } else {
+        setAdminViewMode('table');
+      }
+
+      renderAdminDashboard();
+      checkOverdueTimers();
+
+      // Responsive screen resize handler
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          const scrollHint = document.getElementById('table-scroll-hint');
+          if (scrollHint) {
+            if (state.adminViewMode === 'table' && window.innerWidth < 768) {
+              scrollHint.classList.remove('hidden');
+            } else {
+              scrollHint.classList.add('hidden');
+            }
+          }
+        }, 150);
+      });
+
+      // Interval 30 detik untuk pengecekan status waiting/pending yang >= 7 menit
+      state.timerInterval = setInterval(() => {
+        checkOverdueTimers();
+        if (state.currentView === 'admin') {
+          renderAdminDashboard();
+        }
+      }, 30000);
+    });
+  </script>
+</body>
+</html>

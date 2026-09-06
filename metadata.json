@@ -1,0 +1,6 @@
+{
+  "name": "Samsung Finance - Sistem Pengajuan Cicilan",
+  "description": "Sistem Pengajuan Cicilan Samsung Finance dengan registrasi nomor HP, form pengajuan promo cicilan, validasi ketat, dashboard admin, dan monitoring timer status.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
